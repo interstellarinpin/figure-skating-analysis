@@ -134,7 +134,7 @@
         <button class="play" id="play">► Play</button>
         <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub through the jump">
       </div>
-      <div class="hint" style="margin-top:8px">Blue torso = upper body, amber = lower body. The lower body snaps into line as the arms draw in.</div>
+      <div class="hint" style="margin-top:8px">Counterclockwise, like ~90% of skaters. Blue = upper body — it <strong>leads</strong>; amber = lower body, which trails then <strong>snaps into line</strong> as the arms draw in.</div>
     </div>
 
     <!-- RIGHT: chart + controls -->
@@ -162,9 +162,9 @@
           <input type="range" id="sTuck" min="0.02" max="0.35" step="0.01" value="0.05">
         </div>
         <div class="ctrl">
-          <div class="row"><label for="sPsi">Upper-body open angle&nbsp;ψ</label><span class="val" id="vPsi">52°</span></div>
+          <div class="row"><label for="sPsi">Upper-body lead / open&nbsp;ψ</label><span class="val" id="vPsi">52°</span></div>
           <input type="range" id="sPsi" min="0" max="1.6" step="0.02" value="0.9">
-          <div class="hint">Open before the tap, check as the arms come in — that loop is the snap.</div>
+          <div class="hint">How far the upper body opens ahead before the lower body snaps up to meet it.</div>
         </div>
       </div>
 
@@ -281,22 +281,24 @@
     for(var r=0.28;r<=0.84;r+=0.28){ctx.beginPath();ctx.arc(cx,cy,R*r,0,TAU);ctx.stroke();}
     var idx=clamp(Math.round(frac*(N-1)),0,N-1);
     var theta=sim.theta[idx], ext=sim.ext[idx], psi=sim.psi[idx];
-    var thLower=theta, thUpper=theta+psi;
-    // trail of completed revolutions as a tick ring
-    ctx.strokeStyle=css('--dyn'); ctx.globalAlpha=0.25; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.arc(cx,cy,R*0.9,-Math.PI/2,-Math.PI/2+ (theta%TAU),theta>=0); ctx.stroke(); ctx.globalAlpha=1;
+    var lag=Math.abs(psi);
+    var thUpper=theta, thLower=theta-lag;        // upper body leads; lower trails then snaps into line
+    var dU=-thUpper, dL=-thLower;                // render counterclockwise (canvas y points down)
+    // trail of completed revolutions (counterclockwise)
+    ctx.strokeStyle=css('--dyn'); ctx.globalAlpha=0.22; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(cx,cy,R*0.9,-Math.PI/2,-Math.PI/2-(theta%TAU),true); ctx.stroke(); ctx.globalAlpha=1;
 
     function limb(ang,len,wd,col){ctx.strokeStyle=col;ctx.lineWidth=wd;ctx.lineCap='round';
       ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ang)*len,cy+Math.sin(ang)*len);ctx.stroke();}
-    // lower body (amber): hip bar + legs, fixed-ish radius
+    // lower body (amber): hip bar + legs
     var legLen=R*0.5, hipHalf=R*0.17;
-    var hx=Math.cos(thLower), hy=Math.sin(thLower), px=-hy, py=hx;
+    var hx=Math.cos(dL), hy=Math.sin(dL), px=-hy, py=hx;
     ctx.strokeStyle=css('--geo'); ctx.lineWidth=7; ctx.lineCap='round';
     ctx.beginPath();ctx.moveTo(cx+px*hipHalf,cy+py*hipHalf);ctx.lineTo(cx-px*hipHalf,cy-py*hipHalf);ctx.stroke();
-    limb(thLower+0.34,legLen,6,css('--geo')); limb(thLower-0.34,legLen,6,css('--geo'));
+    limb(dL+0.34,legLen,6,css('--geo')); limb(dL-0.34,legLen,6,css('--geo'));
     // upper body (blue): shoulder bar + arms, arm length grows with extension
     var armLen=R*(0.16+0.42*ext), shHalf=R*0.19;
-    var ux=Math.cos(thUpper), uy=Math.sin(thUpper), qx=-uy, qy=ux;
+    var ux=Math.cos(dU), uy=Math.sin(dU), qx=-uy, qy=ux;
     ctx.strokeStyle=css('--dyn'); ctx.lineWidth=8;
     ctx.beginPath();ctx.moveTo(cx+qx*shHalf,cy+qy*shHalf);ctx.lineTo(cx-qx*shHalf,cy-qy*shHalf);ctx.stroke();
     // arms from each shoulder tip, swept outward along body facing

@@ -250,6 +250,18 @@ The gauge picture explains the coaching cues that otherwise sound like folklore:
   or slower gives the *same* reorientation. The feel is a mathematical property,
   not a mood.
 
+**Direction and sequence (what the video actually shows).** Most skaters rotate
+**counterclockwise** — roughly 90% by every count, and jumps for the other ~10%
+are just the mirror image. And the sequence is **upper body first, lower body
+follows**: coaching sources are consistent that "the upper body rotates against
+the hips... the arms drive the turn," with the hips and free leg catching up in
+the air. So the picture is: the upper body leads the rotation and opens ahead;
+the lower body then snaps into line as everything draws tight. The two-body
+model above is deliberately direction-agnostic (the sign of the twist `ψ` is a
+convention) — it captures the *magnitude* of the geometric effect and the
+open-then-snap *structure*, while the exact 3-D direction of the snap is a
+refinement a full rigid-body model would pin down.
+
 ---
 
 ## 7. What is honest here, and what is a caricature

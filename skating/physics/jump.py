@@ -89,12 +89,13 @@ def simulate_jump(cfg: JumpConfig | None = None) -> dict[str, np.ndarray]:
     i_upper = i_total - cfg.i_lower
     i_upper = np.clip(i_upper, 1e-3, None)
 
-    # Open-then-check twist profile (a loop in shape space). The upper body
-    # OPENS against the spin while the arms are still out (winding the light
-    # lower body forward), then CHECKS -- untwists -- as the arms draw in. By
-    # the connection, the check (arms in, c near 1) drives the torso forward
-    # more than the open (arms out, c small) took it back, so the net geometric
-    # phase adds to the spin. psi returns to 0 => clean, checked landing.
+    # Open-then-check twist profile (a closed loop in shape space). The upper
+    # body leads the rotation and opens relative to the lower body while the
+    # arms are still out; as the arms draw in, the lower body snaps into line
+    # (psi returns to 0 -> a clean, checked landing). Over the loop the shape
+    # change nets a geometric phase that adds to the spin. The sign of psi is a
+    # convention: most skaters rotate counterclockwise, and this planar model
+    # fixes the magnitude of the geometric effect, not its full 3-D direction.
     psi_open = _ramp(t, cfg.open_start * cfg.flight_time,
                      cfg.open_end * cfg.flight_time, 0.0, -cfg.psi_open)
     psi = psi_open + _ramp(t, cfg.check_start * cfg.flight_time,
