@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skating"
+version = "0.1.0"
+description = "Physics-first figure skating jump analysis: geometric phase, video kinematics, simulation, and motion planning."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Ethan Yan" }]
+keywords = ["figure-skating", "biomechanics", "geometric-phase", "falling-cat", "motion-planning"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.23",
+    "scipy>=1.9",
+    "matplotlib>=3.6",
+]
+
+[project.optional-dependencies]
+video = ["mediapipe>=0.10", "opencv-python>=4.7"]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["skating", "skating.physics", "skating.sim", "skating.video", "skating.planning"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

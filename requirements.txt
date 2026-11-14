@@ -1,0 +1,9 @@
+# Core runtime (also declared in pyproject.toml).
+# For a clean install prefer:  pip install -e .
+numpy>=1.23
+scipy>=1.9
+matplotlib>=3.6
+
+# Optional: real video pose extraction (pip install -e '.[video]')
+# mediapipe>=0.10
+# opencv-python>=4.7

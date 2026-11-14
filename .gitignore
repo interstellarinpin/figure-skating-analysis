@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Generated figures / outputs (regenerate with the example scripts)
+examples/figures/
+*.mp4
+*.mov
+*.avi
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
