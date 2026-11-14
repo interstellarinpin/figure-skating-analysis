@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jump Physics Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+  /* Layout: a two-pane "lab" — animated skater + live chart up top, controls and
+     a zero-angular-momentum falling-cat demo below. Palette: ice rink. */
+  :root{
+    --bg:#eaf1f8;
+    --surface:#ffffff;
+    --surface-2:#f3f7fb;
+    --fg:#0f1b2d;
+    --muted:#5a6b80;
+    --line:#d3e0ec;
+    --dyn:#2563eb;   /* dynamic spin */
+    --geo:#d9742a;   /* geometric snap */
+    --ice:#cfe2f3;
+    --accent:var(--dyn);
+    --shadow:0 1px 2px rgba(15,27,45,.06),0 8px 24px rgba(15,27,45,.06);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0a1120; --surface:#111c2e; --surface-2:#0e1828; --fg:#e7eef7;
+    --muted:#9db0c6; --line:#22344b; --dyn:#64a0ff; --geo:#f1a862; --ice:#17304b;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35); color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0a1120; --surface:#111c2e; --surface-2:#0e1828; --fg:#e7eef7;
+    --muted:#9db0c6; --line:#22344b; --dyn:#64a0ff; --geo:#f1a862; --ice:#17304b;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35); color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5; margin:0;
+  }
+  .wrap{
+    max-width:1080px; margin:0 auto;
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));
+    padding-block:28px 48px;
+  }
+  h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif; text-wrap:balance; margin:0}
+  h1{font-size:clamp(1.5rem,4vw,2.1rem); font-weight:700; letter-spacing:-.01em}
+  .sub{color:var(--muted); margin:.5rem 0 0; max-width:60ch}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--geo)}
+  header{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}
+  .theme-btn{
+    flex:none; cursor:pointer; border:1px solid var(--line); background:var(--surface);
+    color:var(--fg); border-radius:999px; width:40px; height:40px; font-size:1.05rem;
+    display:grid; place-items:center;
+  }
+  .theme-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:18px;
+  }
+  .lab{display:grid; grid-template-columns:1.05fr 1fr; gap:18px; margin-top:22px}
+  @media (max-width:760px){.lab{grid-template-columns:1fr}}
+
+  .stage-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:10px}
+  .stage-head h3{font-size:1rem}
+  .revcount{font-family:"Space Grotesk"; font-weight:700; font-size:1.3rem; font-variant-numeric:tabular-nums}
+  canvas{display:block; width:100%; border-radius:12px}
+  #skater{background:radial-gradient(circle at 50% 46%,var(--ice),var(--surface-2) 72%); aspect-ratio:1/1}
+  #chart{background:var(--surface-2); aspect-ratio:1.42/1}
+
+  .transport{display:flex; align-items:center; gap:12px; margin-top:12px}
+  .play{
+    cursor:pointer; border:none; background:var(--accent); color:#fff; font-weight:600;
+    border-radius:10px; padding:9px 16px; font-size:.9rem; font-family:inherit; flex:none;
+  }
+  .play:focus-visible{outline:2px solid var(--fg); outline-offset:2px}
+  input[type=range]{width:100%; accent-color:var(--accent); cursor:pointer}
+  .scrub{flex:1}
+
+  .controls{display:grid; gap:14px; margin-top:4px}
+  .ctrl{display:grid; gap:5px}
+  .ctrl .row{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+  .ctrl label{font-weight:500; font-size:.9rem}
+  .ctrl .val{font-variant-numeric:tabular-nums; color:var(--muted); font-size:.85rem; font-weight:600}
+  .hint{font-size:.78rem; color:var(--muted)}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px}
+  @media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:11px 12px}
+  .stat .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+  .stat .v{font-family:"Space Grotesk"; font-weight:700; font-size:1.3rem; font-variant-numeric:tabular-nums; margin-top:2px}
+  .stat.dyn .v{color:var(--dyn)} .stat.geo .v{color:var(--geo)}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:.8rem; color:var(--muted); margin-top:10px}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .swatch{width:13px; height:3px; border-radius:2px; display:inline-block}
+
+  section.cat{margin-top:34px}
+  .cat-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:stretch; margin-top:16px}
+  @media (max-width:760px){.cat-grid{grid-template-columns:1fr}}
+  #cat{background:var(--surface-2); aspect-ratio:1.3/1}
+  #loop{background:var(--surface-2); aspect-ratio:1.3/1}
+  .cat-read{display:flex; gap:18px; flex-wrap:wrap; margin-top:12px}
+  .cat-read .v{font-family:"Space Grotesk"; font-weight:700; font-size:1.15rem; font-variant-numeric:tabular-nums}
+  p.note{color:var(--muted); font-size:.92rem; max-width:68ch}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--surface-2); padding:.1em .35em; border-radius:5px; font-size:.86em}
+  footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem}
+  a{color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Figure Skating Analysis</div>
+      <h1>Jump Physics Lab</h1>
+      <p class="sub">A jump's rotation is a <strong style="color:var(--dyn)">dynamic spin</strong> (ω = L/I, from pulling in) plus a <strong style="color:var(--geo)">geometric snap</strong> — the same shape-change reorientation a falling cat uses. Drag the controls and watch both.</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle light / dark" aria-label="Toggle light and dark theme">◐</button>
+  </header>
+
+  <div class="lab">
+    <!-- LEFT: animated skater -->
+    <div class="panel">
+      <div class="stage-head">
+        <h3>Airborne rotation</h3>
+        <div class="revcount"><span id="liveRev">0.00</span> rev</div>
+      </div>
+      <canvas id="skater" width="520" height="520"></canvas>
+      <div class="transport">
+        <button class="play" id="play">► Play</button>
+        <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub through the jump">
+      </div>
+      <div class="hint" style="margin-top:8px">Blue torso = upper body, amber = lower body. The lower body snaps into line as the arms draw in.</div>
+    </div>
+
+    <!-- RIGHT: chart + controls -->
+    <div class="panel">
+      <div class="stage-head"><h3>Revolutions over flight</h3></div>
+      <canvas id="chart" width="520" height="366"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--dyn)"></i>dynamic (L/I)</span>
+        <span><i class="swatch" style="background:var(--geo)"></i>geometric (snap)</span>
+        <span><i class="swatch" style="background:var(--fg)"></i>total</span>
+      </div>
+
+      <div class="controls" style="margin-top:16px">
+        <div class="ctrl">
+          <div class="row"><label for="sL">Takeoff angular momentum&nbsp;L</label><span class="val" id="vL">22.0</span></div>
+          <input type="range" id="sL" min="8" max="32" step="0.5" value="22">
+          <div class="hint">More speed &amp; flow → more L → more spin for free.</div>
+        </div>
+        <div class="ctrl">
+          <div class="row"><label for="sT">Flight time</label><span class="val" id="vT">0.60 s</span></div>
+          <input type="range" id="sT" min="0.40" max="0.80" step="0.01" value="0.60">
+        </div>
+        <div class="ctrl">
+          <div class="row"><label for="sTuck">Arm tuck (tighter = faster)</label><span class="val" id="vTuck">tight</span></div>
+          <input type="range" id="sTuck" min="0.02" max="0.35" step="0.01" value="0.05">
+        </div>
+        <div class="ctrl">
+          <div class="row"><label for="sPsi">Upper-body open angle&nbsp;ψ</label><span class="val" id="vPsi">52°</span></div>
+          <input type="range" id="sPsi" min="0" max="1.6" step="0.02" value="0.9">
+          <div class="hint">Open before the tap, check as the arms come in — that loop is the snap.</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Total</div><div class="v"><span id="stTot">0</span></div></div>
+        <div class="stat dyn"><div class="k">Dynamic</div><div class="v"><span id="stDyn">0</span></div></div>
+        <div class="stat geo"><div class="k">Snap</div><div class="v"><span id="stGeo">0</span></div></div>
+        <div class="stat"><div class="k">Peak</div><div class="v"><span id="stRpm">0</span><span style="font-size:.7rem;color:var(--muted)"> rpm</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FALLING CAT -->
+  <section class="cat">
+    <div class="eyebrow">Zero angular momentum</div>
+    <h2>The falling cat: turning with nothing to spin on</h2>
+    <p class="note">Here <code>L = 0</code> the whole time — no spin is borrowed. The two halves bend and counter-twist around one closed loop in shape space (right), and the body still nets a real rotation (left). That leftover turn is the <em>geometric phase</em>, and it <em>is</em> the snap, isolated.</p>
+    <div class="cat-grid">
+      <div class="panel">
+        <div class="stage-head"><h3>Reorientation</h3><div class="revcount" id="catAngle" style="color:var(--geo)">0°</div></div>
+        <canvas id="cat" width="520" height="400"></canvas>
+      </div>
+      <div class="panel">
+        <div class="stage-head"><h3>Loop in shape space</h3></div>
+        <canvas id="loop" width="520" height="400"></canvas>
+        <div class="cat-read">
+          <div><div class="k" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Net turn (walk the loop)</div><div class="v" id="catLine">—</div></div>
+          <div><div class="k" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">= Curvature flux (Stokes)</div><div class="v" id="catArea">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="transport" style="max-width:360px">
+      <button class="play" id="catPlay">► Play cat</button>
+      <input class="scrub" id="catScrub" type="range" min="0" max="1000" value="0" aria-label="Scrub the cat maneuver">
+    </div>
+  </section>
+
+  <footer>
+    Physics mirrors the <code>skating</code> Python package (same model as <code>skating.physics.jump</code> and <code>skating.physics.geometric_phase</code>). Built on the gauge theory of the falling cat (Montgomery; Shapere–Wilczek; Kane–Scher). A planar, axisymmetric caricature — right about the mechanism, not a full 3-D solve.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var TAU = Math.PI*2, DEG = 180/Math.PI;
+
+  /* ---------- shared helpers ---------- */
+  function clamp(x,a,b){return x<a?a:x>b?b:x;}
+  function ramp(t,t0,t1,a,b){var x=clamp((t-t0)/Math.max(t1-t0,1e-9),0,1); var s=0.5-0.5*Math.cos(Math.PI*x); return a+(b-a)*s;}
+  function cumtrapz(t,y){var o=new Float64Array(t.length); for(var i=1;i<t.length;i++) o[i]=o[i-1]+0.5*(y[i-1]+y[i])*(t[i]-t[i-1]); return o;}
+  function gradient(y,t){var n=y.length,o=new Float64Array(n); if(n<2)return o; o[0]=(y[1]-y[0])/(t[1]-t[0]); o[n-1]=(y[n-1]-y[n-2])/(t[n-1]-t[n-2]); for(var i=1;i<n-1;i++)o[i]=(y[i+1]-y[i-1])/(t[i+1]-t[i-1]); return o;}
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  function fitCanvas(c){var r=c.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2); c.width=Math.round(r.width*d); c.height=Math.round(r.height*d); var x=c.getContext('2d'); x.setTransform(d,0,0,d,0,0); return {ctx:x,w:r.width,h:r.height};}
+
+  /* ---------- jump model (mirrors skating.physics.jump) ---------- */
+  var S0=0.73305, S1=2.537883;
+  function iNorm(ext,iLower){return (S0+(S1-S0)*ext)/S1*(iLower+S0/S1);}
+  var N=400;
+  function simulateJump(p){
+    var T=p.T, L=p.L, iLower=1.0;
+    var t=new Float64Array(N), ext=new Float64Array(N), itot=new Float64Array(N),
+        iup=new Float64Array(N), psi=new Float64Array(N), odyn=new Float64Array(N);
+    for(var i=0;i<N;i++){
+      var tt=i*T/(N-1); t[i]=tt;
+      var e=ramp(tt,0.15*T,0.55*T,1.0,p.arm_in); ext[i]=e;
+      var it=iNorm(e,iLower); itot[i]=it;
+      iup[i]=Math.max(it-iLower,1e-3);
+      var po=ramp(tt,0.0,0.20*T,0,-p.psi);
+      psi[i]=po+ramp(tt,0.20*T,0.50*T,0,p.psi);
+      odyn[i]=L/it;
+    }
+    var tdyn=cumtrapz(t,odyn);
+    var c=new Float64Array(N); for(i=0;i<N;i++)c[i]=iLower/(iup[i]+iLower);
+    var pd=gradient(psi,t), ogeo=new Float64Array(N); for(i=0;i<N;i++)ogeo[i]=c[i]*pd[i];
+    var tgeo=cumtrapz(t,ogeo);
+    var ttot=new Float64Array(N); for(i=0;i<N;i++)ttot[i]=tdyn[i]+tgeo[i];
+    var peak=0; for(i=0;i<N;i++)if(odyn[i]>peak)peak=odyn[i];
+    return {t:t,T:T,ext:ext,psi:psi,theta:ttot,tdyn:tdyn,tgeo:tgeo,
+            revTot:ttot[N-1]/TAU, revDyn:tdyn[N-1]/TAU, revGeo:tgeo[N-1]/TAU, rpm:peak*60/TAU};
+  }
+
+  /* ---------- falling cat (mirrors geometric_phase: ShapeLoop + simulate_two_body) ---------- */
+  function catTrajectory(){
+    var psiMax=Math.PI/2, iOut=1.2, iIn=0.35, iL=1.0, n=160;
+    var P=[],U=[]; // shape path (psi, I_upper)
+    function lin(a,b,k){var r=[];for(var i=0;i<k;i++)r.push(a+(b-a)*i/(k-1));return r;}
+    var seg;
+    seg=lin(0,psiMax,n);     for(var i=0;i<n;i++){P.push(seg[i]);U.push(iOut);}      // wind up
+    seg=lin(iOut,iIn,n);     for(i=0;i<n;i++){P.push(psiMax);U.push(seg[i]);}        // pull in
+    seg=lin(psiMax,0,n);     for(i=0;i<n;i++){P.push(seg[i]);U.push(iIn);}           // snap
+    seg=lin(iIn,iOut,n);     for(i=0;i<n;i++){P.push(0);U.push(seg[i]);}             // reset
+    var M=P.length, tu=new Float64Array(M), tl=new Float64Array(M);
+    for(i=1;i<M;i++){
+      var iu=0.5*(U[i-1]+U[i]), dps=P[i]-P[i-1];
+      tu[i]=tu[i-1]+ (iL/(iu+iL))*dps;
+      tl[i]=tl[i-1]+ (-iu/(iu+iL))*dps;
+    }
+    // holonomy two ways
+    var line=0; for(i=1;i<M;i++){var cc=0.5*(iL/(U[i-1]+iL)+iL/(U[i]+iL)); line+=cc*(P[i]-P[i-1]);}
+    // curvature flux over rectangle psi:[0,psiMax], Iu:[iIn,iOut] of  I_L/(Iu+I_L)^2
+    var g=120, flux=0, dpsi=psiMax/g, diu=(iOut-iIn)/g;
+    for(var a=0;a<g;a++)for(var b=0;b<g;b++){var iu2=iIn+(b+0.5)*diu; flux+=iL/Math.pow(iu2+iL,2)*dpsi*diu;}
+    return {P:P,U:U,tu:tu,tl:tl,net:tu[M-1],line:line,area:-flux,psiMax:psiMax,iOut:iOut,iIn:iIn,M:M};
+  }
+  var CAT=catTrajectory();
+
+  /* ---------- drawing: skater (top-down) ---------- */
+  function drawSkater(cv,sim,frac){
+    var f=fitCanvas(cv),ctx=f.ctx,w=f.w,h=f.h,cx=w/2,cy=h*0.47,R=Math.min(w,h)*0.5;
+    ctx.clearRect(0,0,w,h);
+    // ice rings
+    ctx.strokeStyle=css('--line'); ctx.lineWidth=1;
+    for(var r=0.28;r<=0.84;r+=0.28){ctx.beginPath();ctx.arc(cx,cy,R*r,0,TAU);ctx.stroke();}
+    var idx=clamp(Math.round(frac*(N-1)),0,N-1);
+    var theta=sim.theta[idx], ext=sim.ext[idx], psi=sim.psi[idx];
+    var thLower=theta, thUpper=theta+psi;
+    // trail of completed revolutions as a tick ring
+    ctx.strokeStyle=css('--dyn'); ctx.globalAlpha=0.25; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(cx,cy,R*0.9,-Math.PI/2,-Math.PI/2+ (theta%TAU),theta>=0); ctx.stroke(); ctx.globalAlpha=1;
+
+    function limb(ang,len,wd,col){ctx.strokeStyle=col;ctx.lineWidth=wd;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ang)*len,cy+Math.sin(ang)*len);ctx.stroke();}
+    // lower body (amber): hip bar + legs, fixed-ish radius
+    var legLen=R*0.5, hipHalf=R*0.17;
+    var hx=Math.cos(thLower), hy=Math.sin(thLower), px=-hy, py=hx;
+    ctx.strokeStyle=css('--geo'); ctx.lineWidth=7; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(cx+px*hipHalf,cy+py*hipHalf);ctx.lineTo(cx-px*hipHalf,cy-py*hipHalf);ctx.stroke();
+    limb(thLower+0.34,legLen,6,css('--geo')); limb(thLower-0.34,legLen,6,css('--geo'));
+    // upper body (blue): shoulder bar + arms, arm length grows with extension
+    var armLen=R*(0.16+0.42*ext), shHalf=R*0.19;
+    var ux=Math.cos(thUpper), uy=Math.sin(thUpper), qx=-uy, qy=ux;
+    ctx.strokeStyle=css('--dyn'); ctx.lineWidth=8;
+    ctx.beginPath();ctx.moveTo(cx+qx*shHalf,cy+qy*shHalf);ctx.lineTo(cx-qx*shHalf,cy-qy*shHalf);ctx.stroke();
+    // arms from each shoulder tip, swept outward along body facing
+    function arm(sign){var sx=cx+qx*shHalf*sign, sy=cy+qy*shHalf*sign;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+ux*armLen+qx*shHalf*sign*0.2,sy+uy*armLen+qy*shHalf*sign*0.2);ctx.stroke();}
+    ctx.lineWidth=6; arm(1); arm(-1);
+    // head
+    ctx.fillStyle=css('--fg');
+    ctx.beginPath();ctx.arc(cx+ux*R*0.1,cy+uy*R*0.1,R*0.06,0,TAU);ctx.fill();
+    // facing arrow
+    ctx.fillStyle=css('--dyn');
+    ctx.beginPath();ctx.moveTo(cx+ux*R*0.86,cy+uy*R*0.86);
+    ctx.lineTo(cx+ux*R*0.74+qx*R*0.05,cy+uy*R*0.74+qy*R*0.05);
+    ctx.lineTo(cx+ux*R*0.74-qx*R*0.05,cy+uy*R*0.74-qy*R*0.05);ctx.closePath();ctx.fill();
+    document.getElementById('liveRev').textContent=(theta/TAU).toFixed(2);
+  }
+
+  /* ---------- drawing: revolutions chart ---------- */
+  function drawChart(cv,sim,frac){
+    var f=fitCanvas(cv),ctx=f.ctx,w=f.w,h=f.h, m={l:38,r:10,t:12,b:26};
+    ctx.clearRect(0,0,w,h);
+    var x0=m.l,x1=w-m.r,y0=h-m.b,y1=m.t;
+    var maxRev=Math.max(1,Math.ceil(sim.revTot+0.25));
+    function X(i){return x0+(x1-x0)*(sim.t[i]/sim.T);}
+    function Y(v){return y0+(y1-y0)*(v/maxRev);}
+    // grid
+    ctx.strokeStyle=css('--line');ctx.fillStyle=css('--muted');ctx.lineWidth=1;
+    ctx.font='11px Inter,sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
+    for(var r=0;r<=maxRev;r++){var yy=Y(r);ctx.globalAlpha=0.6;ctx.beginPath();ctx.moveTo(x0,yy);ctx.lineTo(x1,yy);ctx.stroke();ctx.globalAlpha=1;ctx.fillText(r,x0-6,yy);}
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('0',x0,y0+6);ctx.fillText(sim.T.toFixed(2)+' s',x1,y0+6);
+    function curve(arr,col,wd){ctx.strokeStyle=col;ctx.lineWidth=wd;ctx.beginPath();
+      for(var i=0;i<N;i++){var xx=X(i),yy=Y(arr[i]/TAU);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();}
+    curve(sim.tdyn,css('--dyn'),2);
+    curve(sim.tgeo,css('--geo'),2);
+    curve(sim.theta,css('--fg'),2.4);
+    // cursor
+    var ci=clamp(Math.round(frac*(N-1)),0,N-1), cxp=X(ci);
+    ctx.strokeStyle=css('--muted');ctx.globalAlpha=0.6;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cxp,y1);ctx.lineTo(cxp,y0);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+  }
+
+  /* ---------- drawing: cat + shape loop ---------- */
+  function drawCat(cv,frac){
+    var f=fitCanvas(cv),ctx=f.ctx,w=f.w,h=f.h,cx=w/2,cy=h/2,R=Math.min(w,h)*0.33;
+    ctx.clearRect(0,0,w,h);
+    var idx=clamp(Math.round(frac*(CAT.M-1)),0,CAT.M-1);
+    var tu=CAT.tu[idx],tl=CAT.tl[idx];
+    ctx.strokeStyle=css('--line');ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,TAU);ctx.stroke();
+    function half(ang,col,label){var dx=Math.cos(ang),dy=Math.sin(ang);
+      ctx.strokeStyle=col;ctx.lineWidth=12;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx*R,cy+dy*R);ctx.stroke();
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(cx+dx*R,cy+dy*R,7,0,TAU);ctx.fill();}
+    half(tl+Math.PI,css('--geo'));      // rear half
+    half(tu,css('--dyn'));              // front half
+    ctx.fillStyle=css('--muted');ctx.font='12px Inter';ctx.textAlign='center';
+    ctx.fillText('L = 0',cx,cy+R*1.33);
+    document.getElementById('catAngle').textContent=(tu*DEG).toFixed(0)+'°';
+  }
+  function drawLoop(cv,frac){
+    var f=fitCanvas(cv),ctx=f.ctx,w=f.w,h=f.h,m={l:46,r:16,t:14,b:30};
+    ctx.clearRect(0,0,w,h);
+    var x0=m.l,x1=w-m.r,y0=h-m.b,y1=m.t;
+    function X(p){return x0+(x1-x0)*(p/(CAT.psiMax));}
+    function Y(iu){return y0+(y1-y0)*((iu-CAT.iIn)/(CAT.iOut-CAT.iIn));}
+    ctx.strokeStyle=css('--line');ctx.lineWidth=1;ctx.strokeRect(x0,y1,x1-x0,y0-y1);
+    ctx.fillStyle=css('--muted');ctx.font='11px Inter';ctx.textAlign='center';
+    ctx.fillText('twist ψ  →',(x0+x1)/2,y0+8);
+    ctx.save();ctx.translate(14,(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText('arm inertia I_U',0,0);ctx.restore();
+    // loop path
+    ctx.strokeStyle=css('--geo');ctx.lineWidth=2.2;ctx.beginPath();
+    for(var i=0;i<CAT.M;i++){var xx=X(CAT.P[i]),yy=Y(CAT.U[i]);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();
+    // moving dot
+    var idx=clamp(Math.round(frac*(CAT.M-1)),0,CAT.M-1);
+    ctx.fillStyle=css('--fg');ctx.beginPath();ctx.arc(X(CAT.P[idx]),Y(CAT.U[idx]),5,0,TAU);ctx.fill();
+  }
+
+  /* ---------- state & wiring ---------- */
+  var params={L:22,T:0.60,arm_in:0.05,psi:0.9}, sim=simulateJump(params);
+  var jFrac=0, jPlaying=false, cFrac=0, cPlaying=false, jLast=0, cLast=0;
+
+  function refreshStats(){
+    document.getElementById('stTot').textContent=sim.revTot.toFixed(2);
+    document.getElementById('stDyn').textContent=sim.revDyn.toFixed(2);
+    document.getElementById('stGeo').textContent=sim.revGeo.toFixed(3);
+    document.getElementById('stRpm').textContent=Math.round(sim.rpm);
+  }
+  function renderJump(){drawSkater(document.getElementById('skater'),sim,jFrac);drawChart(document.getElementById('chart'),sim,jFrac);}
+  function renderCat(){drawCat(document.getElementById('cat'),cFrac);drawLoop(document.getElementById('loop'),cFrac);}
+
+  function resim(){sim=simulateJump(params);refreshStats();renderJump();}
+
+  // sliders
+  function bind(id,valId,fmt,set){var el=document.getElementById(id);
+    el.addEventListener('input',function(){set(parseFloat(el.value));document.getElementById(valId).textContent=fmt(parseFloat(el.value));resim();});}
+  bind('sL','vL',function(v){return v.toFixed(1);},function(v){params.L=v;});
+  bind('sT','vT',function(v){return v.toFixed(2)+' s';},function(v){params.T=v;});
+  bind('sTuck','vTuck',function(v){return v<=0.08?'tight':v<=0.2?'medium':'loose';},function(v){params.arm_in=v;});
+  bind('sPsi','vPsi',function(v){return Math.round(v*DEG)+'°';},function(v){params.psi=v;});
+
+  // transport — jump
+  var scrub=document.getElementById('scrub'), playBtn=document.getElementById('play');
+  scrub.addEventListener('input',function(){jPlaying=false;playBtn.textContent='► Play';jFrac=scrub.value/1000;renderJump();});
+  playBtn.addEventListener('click',function(){jPlaying=!jPlaying;playBtn.textContent=jPlaying?'❚❚ Pause':'► Play';if(jPlaying&&jFrac>=1)jFrac=0;jLast=performance.now();});
+  // transport — cat
+  var catScrub=document.getElementById('catScrub'), catBtn=document.getElementById('catPlay');
+  catScrub.addEventListener('input',function(){cPlaying=false;catBtn.textContent='► Play cat';cFrac=catScrub.value/1000;renderCat();});
+  catBtn.addEventListener('click',function(){cPlaying=!cPlaying;catBtn.textContent=cPlaying?'❚❚ Pause':'► Play cat';if(cPlaying&&cFrac>=1)cFrac=0;cLast=performance.now();});
+
+  // animation loop
+  function tick(now){
+    if(jPlaying){var dt=(now-jLast)/1000;jLast=now;jFrac+=dt/2.6;if(jFrac>=1){jFrac=1;jPlaying=false;playBtn.textContent='► Play';}scrub.value=Math.round(jFrac*1000);renderJump();}
+    if(cPlaying){var dc=(now-cLast)/1000;cLast=now;cFrac+=dc/3.2;if(cFrac>=1){cFrac=1;cPlaying=false;catBtn.textContent='► Play cat';}catScrub.value=Math.round(cFrac*1000);renderCat();}
+    requestAnimationFrame(tick);
+  }
+
+  // theme toggle (per-viewer convenience)
+  var tb=document.getElementById('themeBtn');
+  try{var saved=localStorage.getItem('fs-theme');if(saved)document.documentElement.setAttribute('data-theme',saved);}catch(e){}
+  tb.addEventListener('click',function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+    var next=dark?'light':'dark';document.documentElement.setAttribute('data-theme',next);
+    try{localStorage.setItem('fs-theme',next);}catch(e){}
+    refreshStats();renderJump();renderCat();
+  });
+
+  // cat holonomy readouts
+  document.getElementById('catLine').textContent=(CAT.line*DEG).toFixed(1)+'°';
+  document.getElementById('catArea').textContent=(CAT.area*DEG).toFixed(1)+'°';
+
+  // boot
+  function boot(){refreshStats();renderJump();renderCat();requestAnimationFrame(tick);}
+  window.addEventListener('resize',function(){renderJump();renderCat();});
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(boot);} else {boot();}
+  boot();
+})();
+</script>
+
+</html>
