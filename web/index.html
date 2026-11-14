@@ -134,7 +134,7 @@
         <button class="play" id="play">► Play</button>
         <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub through the jump">
       </div>
-      <div class="hint" style="margin-top:8px">Counterclockwise, like ~90% of skaters. Blue = upper body — it <strong>leads</strong>; amber = lower body, which trails then <strong>snaps into line</strong> as the arms draw in.</div>
+      <div class="hint" style="margin-top:8px">Counterclockwise, like ~90% of skaters. Blue = upper body — it <strong>leads</strong>; amber = lower body, which <strong>slows and counter-rotates</strong> (weighted by its inertia) then <strong>snaps into line</strong> as the arms draw in.</div>
     </div>
 
     <!-- RIGHT: chart + controls -->
@@ -281,8 +281,13 @@
     for(var r=0.28;r<=0.84;r+=0.28){ctx.beginPath();ctx.arc(cx,cy,R*r,0,TAU);ctx.stroke();}
     var idx=clamp(Math.round(frac*(N-1)),0,N-1);
     var theta=sim.theta[idx], ext=sim.ext[idx], psi=sim.psi[idx];
-    var lag=Math.abs(psi);
-    var thUpper=theta, thLower=theta-lag;        // upper body leads; lower trails then snaps into line
+    // Inertia-weighted counter-rotation: the lower body lags by only its share
+    // of the twist, I_U/(I_U+I_L). Arms out -> big share (it slows and trails);
+    // arms in -> tiny share (it snaps up into line). This keeps the amber from
+    // swinging fully backward, matching real footage where the hips just slow.
+    var iLower=1.0, iTot=iNorm(ext,iLower), iUp=Math.max(iTot-iLower,1e-3);
+    var lag=(iUp/(iUp+iLower))*Math.abs(psi);
+    var thUpper=theta, thLower=theta-lag;        // upper body leads; lower slows, lags, then snaps in
     var dU=-thUpper, dL=-thLower;                // render counterclockwise (canvas y points down)
     // trail of completed revolutions (counterclockwise)
     ctx.strokeStyle=css('--dyn'); ctx.globalAlpha=0.22; ctx.lineWidth=4;
