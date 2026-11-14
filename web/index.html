@@ -215,6 +215,7 @@
   /* ---------- shared helpers ---------- */
   function clamp(x,a,b){return x<a?a:x>b?b:x;}
   function ramp(t,t0,t1,a,b){var x=clamp((t-t0)/Math.max(t1-t0,1e-9),0,1); var s=0.5-0.5*Math.cos(Math.PI*x); return a+(b-a)*s;}
+  function rampOut(t,t0,t1,a,b){var x=clamp((t-t0)/Math.max(t1-t0,1e-9),0,1); return a+(b-a)*Math.sin(x*Math.PI/2);} // ease-out: fast start, gentle settle
   function cumtrapz(t,y){var o=new Float64Array(t.length); for(var i=1;i<t.length;i++) o[i]=o[i-1]+0.5*(y[i-1]+y[i])*(t[i]-t[i-1]); return o;}
   function gradient(y,t){var n=y.length,o=new Float64Array(n); if(n<2)return o; o[0]=(y[1]-y[0])/(t[1]-t[0]); o[n-1]=(y[n-1]-y[n-2])/(t[n-1]-t[n-2]); for(var i=1;i<n-1;i++)o[i]=(y[i+1]-y[i-1])/(t[i+1]-t[i-1]); return o;}
   function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -233,7 +234,7 @@
       var e=ramp(tt,0.15*T,0.55*T,1.0,p.arm_in); ext[i]=e;
       var it=iNorm(e,iLower); itot[i]=it;
       iup[i]=Math.max(it-iLower,1e-3);
-      var po=ramp(tt,0.0,0.20*T,0,-p.psi);
+      var po=rampOut(tt,0.0,0.20*T,0,-p.psi);   // upper body opens promptly (ease-out)
       psi[i]=po+ramp(tt,0.20*T,0.50*T,0,p.psi);
       odyn[i]=L/it;
     }

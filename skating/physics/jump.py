@@ -64,6 +64,17 @@ def _ramp(t: np.ndarray, t0: float, t1: float, a: float, b: float) -> np.ndarray
     return a + (b - a) * s
 
 
+def _ramp_out(t: np.ndarray, t0: float, t1: float, a: float, b: float) -> np.ndarray:
+    """Ease-out ramp (fast start, gentle settle) over ``[t0, t1]``, clamped.
+
+    Used for the upper-body open so the twist begins promptly at takeoff
+    instead of easing in from zero rate (which would let the body spin ~30 deg
+    locked-together before any separation is visible).
+    """
+    x = np.clip((t - t0) / max(t1 - t0, 1e-9), 0.0, 1.0)
+    return a + (b - a) * np.sin(x * np.pi / 2.0)
+
+
 def simulate_jump(cfg: JumpConfig | None = None) -> dict[str, np.ndarray]:
     """Simulate one airborne phase and return separated rotation tracks.
 
@@ -96,8 +107,8 @@ def simulate_jump(cfg: JumpConfig | None = None) -> dict[str, np.ndarray]:
     # change nets a geometric phase that adds to the spin. The sign of psi is a
     # convention: most skaters rotate counterclockwise, and this planar model
     # fixes the magnitude of the geometric effect, not its full 3-D direction.
-    psi_open = _ramp(t, cfg.open_start * cfg.flight_time,
-                     cfg.open_end * cfg.flight_time, 0.0, -cfg.psi_open)
+    psi_open = _ramp_out(t, cfg.open_start * cfg.flight_time,
+                         cfg.open_end * cfg.flight_time, 0.0, -cfg.psi_open)
     psi = psi_open + _ramp(t, cfg.check_start * cfg.flight_time,
                            cfg.check_end * cfg.flight_time, 0.0, cfg.psi_open)
 
