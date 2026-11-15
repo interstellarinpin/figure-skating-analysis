@@ -68,7 +68,25 @@ python examples/01_falling_cat_reorientation.py   # geometric phase, Stokes-chec
 python examples/02_jump_two_phases.py             # dynamic spin + geometric snap
 python examples/03_plan_a_jump.py                 # plan a triple to spec
 python examples/04_video_kinematics.py            # (synthetic) video -> physics
+python examples/05_free_floating_reorientation.py # robot falling cat: holonomy = base turn
+python examples/06_cat_video_reorientation.py clip.mov  # real cat clip -> annotated video
+python examples/07_skating_two_body_overlay.py clip.mp4 --mode snap  # two-body overlay on footage
 ```
+
+Example 06 maps a real slow-motion righting clip onto the theory (orientation
+$\theta:180^\circ\!\to\!0^\circ$ at $L=0$ via a closed loop in shape space) and
+writes an **annotated video** with the phase, the live orientation dial, the
+`L = 0` badge, and a tracer circling the $\psi$–$s$ shape loop drawn over the
+footage. Needs a front-view clip plus `pip install imageio imageio-ffmpeg`; pass
+`--no-video` to render just the figures.
+
+Example 07 draws the demo's two-body model straight onto a real skating clip:
+**blue = upper body (leads)**, **amber = lower body (barely turns, then snaps
+into line)**. The on-skater glyph shows the relative twist $\psi$ — the upper
+opening ahead of the near-fixed lower — with the whole-body spin ($\omega=L/I$)
+shown separately so it is never confused with the twist, and a synced inset of
+the real `simulate_jump` model. `--mode spin` suits a spin/jump clip, `--mode
+snap` a jump-analysis clip; `--probe` dumps sample frames instead of encoding.
 
 A 20-second taste in the REPL:
 
@@ -105,10 +123,10 @@ nonzero-rotation, and the dynamic+geometric decomposition.
 ```
 skating/
   physics/     rigid_body.py · geometric_phase.py · jump.py
-  sim/         falling_cat.py
+  sim/         falling_cat.py · free_floating.py
   video/       pose.py · kinematics.py
   planning/    jump_planner.py
-examples/      01..04 runnable scripts -> figures/
+examples/      01..07 runnable scripts -> figures/
 docs/
   theory/gauge-theory-of-skating.md   <- the core writeup
   roadmap.md
