@@ -25,3 +25,8 @@ examples/figures/
 .DS_Store
 .vscode/
 .idea/
+.vercel
+.env*
+
+# Videos used by the web slides
+!web/media/*.mp4

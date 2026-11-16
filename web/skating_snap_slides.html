@@ -215,7 +215,6 @@
     <div class="f abs interactive" data-s="3" style="top:0;font-size:24px;display:flex;align-items:center;gap:24px">
       <span>Try it: shoulder peak relative to takeoff</span>
       <input id="tm-slider" type="range" min="-0.3" max="0.2" step="0.005" value="0">
-      <span class="mut" style="font-size:21px">Winding back first adds a second gain: more angular momentum. Next slide.</span>
     </div>
   </div>
   <div class="abs ro" style="left:960px;top:620px;width:600px;font-size:24px">
@@ -223,30 +222,8 @@
   </div>
 </section>
 
-<!-- 5c ─────────────── WHY WIND BACK -->
-<section class="slide" data-id="windback" data-steps="5">
-  <h2>Why wind back? A longer runway for momentum</h2>
-  <svg class="full" id="wind-svg" viewBox="0 0 1600 900"></svg>
-  <div class="deriv stack" style="left:700px;top:150px;width:860px;--eqfs:30px">
-    <div class="line" data-s="0"><div class="eq">\[\tau_m\,\Delta\phi = \tfrac{1}{2}\,\IU\,\dPS^{\,2}\]</div>
-      <div class="why">The waist muscles (max torque \(\tau_m\)) do work over the swing \(\Delta\phi\) while the blade holds the hips</div></div>
-    <div class="line" data-s="1"><div class="eq">\[\dPS = \sqrt{2\,\tau_m\,\Delta\phi\,/\,\IU}\]</div>
-      <div class="why">How fast the shoulders are turning at the end of the swing</div></div>
-    <div class="line" data-s="2"><div class="eq">\[\Delta\LL = \IU\,\dPS = \sqrt{2\,\tau_m\,\IU\,\Delta\phi}\]</div>
-      <div class="why">Angular momentum loaded into the shoulders. The ice supplies the reaction torque.</div></div>
-    <div class="line" data-s="3"><div class="eq">\[\text{wind back by } \PS_0:\ \ \Delta\phi \times 2 \;\Longrightarrow\; \Delta\LL \times \sqrt{2} \approx 1.41\]</div>
-      <div class="why">Same muscles, twice the runway, 41% more momentum</div></div>
-    <div class="line" data-s="4"><div class="eq">\[\LL_{\text{takeoff}} = \LL_{\text{entry}} + \Delta\LL\]</div>
-      <div class="why">The shoulders check at takeoff and hand \(\Delta\LL\) to the whole body, so the spin \(\LL/I\) is faster in the air</div></div>
-  </div>
-  <div class="callout amber f abs" data-s="5" style="left:700px;top:700px;width:820px;font-size:23px">
-    Two gains, both released at takeoff: the <span class="t">wind-back loads momentum</span> (more spin), and the
-    <span class="y">forward lead loads the snap</span> (free rotation). Since \(\Delta\LL \propto \sqrt{\IU}\), arms out during the wind-up load even more.
-  </div>
-</section>
-
 <!-- 6 ─────────────── TIP OF THE ICEBERG -->
-<section class="slide" data-id="iceberg" data-steps="5">
+<section class="slide" data-id="iceberg" data-steps="4">
   <h2>Conservation of angular momentum is the tip of the iceberg</h2>
   <svg class="full" id="iceberg-svg" viewBox="0 0 1600 900"></svg>
 </section>
@@ -335,7 +312,7 @@
   </div>
   <div class="card f" data-s="2" style="left:800px;top:250px;width:640px;height:300px;border-color:#5a4426">
     <div class="num a">2</div><h3>Create the snap with the upper body</h3>
-    <p>Wind back, then open the shoulders on the ice so the lead peaks <i>right as you leave the ice</i>. Takeoff releases it, and the hips catch up on their own: \(\bar{\kk}\,\PS(t_{\text{takeoff}})\).</p>
+    <p>Open the shoulders on the ice so the lead peaks <i>right as you leave the ice</i>. Takeoff releases it, and the hips catch up on their own: \(\bar{\kk}\,\PS(t_{\text{takeoff}})\).</p>
   </div>
   <div class="callout f abs" data-s="3" style="left:80px;top:690px;width:1360px;font-size:30px">
     Two repeatable actions instead of a full-body heave
@@ -346,29 +323,19 @@
 <!-- 12 ─────────────── YOUR FOOTAGE -->
 <section class="slide" data-id="footage" data-steps="0">
   <h2>On the ice</h2>
-  <div class="vslot interactive" data-src="" style="left:80px;top:140px;width:700px;height:640px"></div>
-  <div class="vslot interactive" data-src="" style="left:820px;top:140px;width:700px;height:640px"></div>
-  <div class="cap" contenteditable="true" spellcheck="false" style="left:80px;top:800px;width:700px">Click to add a caption…</div>
-  <div class="cap" contenteditable="true" spellcheck="false" style="left:820px;top:800px;width:700px">Click to add a caption…</div>
-</section>
-
-<!-- 13 ─────────────── 3D -->
-<section class="slide" data-id="three" data-steps="0">
-  <h2>The whole jump in 3D</h2>
-  <iframe class="embed interactive" data-src="jump3d.html" style="left:80px;top:130px;width:1440px;height:700px"></iframe>
-  <div class="abs hint" style="left:80px;top:842px">Drag to orbit. Click outside the 3D view, then use → to continue.</div>
+  <div class="vslot interactive" data-src="media/ice_1.mp4" style="left:80px;top:220px;width:700px;height:392px"></div>
+  <div class="vslot interactive" data-src="media/ice_2.mp4" style="left:820px;top:220px;width:700px;height:392px"></div>
 </section>
 
 <!-- 14 ─────────────── SUMMARY -->
-<section class="slide" data-id="summary" data-steps="5">
+<section class="slide" data-id="summary" data-steps="4">
   <h2>Summary</h2>
   <div class="abs" style="left:100px;top:160px;width:1400px">
     <p class="f" data-s="0"><span class="mut">1.</span>&ensp;\(\dtL = \dfrac{\LL}{I} + \kS(-\dPS)\): <span class="t">dynamic spin</span> plus <span class="a">the snap</span></p>
     <p class="f" data-s="1"><span class="mut">2.</span>&ensp;The snap \(\approx \bar{\kk}\,\PS(t_{\text{takeoff}})\): only the lead stored when the blade leaves the ice counts, so timing matters, not effort</p>
     <p class="f" data-s="2"><span class="mut">3.</span>&ensp;Wind up on the ice (the blade holds the hips), snap in the air: \(\approx 22^\circ\) for free in this model</p>
-    <p class="f" data-s="3"><span class="mut">4.</span>&ensp;Wind back for a longer runway: \(\Delta\LL \propto \sqrt{\Delta\phi}\), loaded on the ice and released at takeoff</p>
-    <p class="f" data-s="4"><span class="mut">5.</span>&ensp;Internal torque can't tip you over. Forcing a rigid turn off the ice can.</p>
-    <p class="f" data-s="5"><span class="mut">6.</span>&ensp;Focus on two things: <span class="b">balance</span> and <span class="a">the upper-body snap</span></p>
+    <p class="f" data-s="3"><span class="mut">4.</span>&ensp;Internal torque can't tip you over. Forcing a rigid turn off the ice can.</p>
+    <p class="f" data-s="4"><span class="mut">5.</span>&ensp;Focus on two things: <span class="b">balance</span> and <span class="a">the upper-body snap</span></p>
   </div>
 </section>
 
@@ -632,14 +599,13 @@ HOOKS.iceberg = {
     txt(svg, 1500, W + 32, 'what makes the jump work', { size: 20, color: '#6f97b3', anchor: 'end', italic: true });
     const items = [
       ['the snap:', '\\int \\kS\\,(-d\\PS)', 'free rotation from shape change'],
-      ['the wind-back:', '', 'a longer runway loads more angular momentum'],
       ['the wind-up:', '', 'the ice holds the hips while the shoulders open'],
       ['internal torque:', '', "moves the body parts, can't change L or tip you over"],
       ['balance:', '', 'staying stacked over the blade'],
     ];
     items.forEach(([h, m, d], i) => {
       const g = frag(S('g', {}, svg), i + 1), y = 405 + i * 86;
-      txt(g, 830, y, h, { size: 30, color: [C.amber, C.green, C.teal, C.purple, C.blue][i], anchor: 'end' });
+      txt(g, 830, y, h, { size: 30, color: [C.amber, C.teal, C.purple, C.blue][i], anchor: 'end' });
       if (m) tex(g, 850, y - 10, m, { size: 28, anchor: 'start', w: 260, h: 70 });
       txt(g, m ? 1060 : 850, y, d, { size: 24, color: '#bbb', anchor: 'start' });
     });
@@ -726,46 +692,6 @@ HOOKS.timing = {
     const from = a && st > 0 ? T[st - 1] : (st === 3 ? 0 : to);
     if (a && from !== T[st]) { this.render(from); anim(1600, t => this.render(from + (T[st] - from) * t)); }
     else this.render(st === 3 ? 0 : to);
-  },
-};
-
-/* wind back: same muscle torque, longer swing → more momentum loaded (constant torque, hips held) */
-HOOKS.windback = {
-  init() {
-    const svg = document.getElementById('wind-svg'), ALPHA = this.ALPHA = 5;   // tau_m / I_U, rad/s^2
-    this.cases = [
-      { y: 300, from: 0, name: 'no wind-back', sub: 'Δφ = 0.9' },
-      { y: 620, from: -PSI0, name: 'wind back first', sub: 'Δφ = 1.8' },
-    ].map(c => {
-      c.T = Math.sqrt(2 * (PSI0 - c.from) / ALPHA);
-      c.sk = SkaterTop(svg, 210, c.y, { sc: 0.62 });
-      txt(svg, 210, c.y + 150, c.name, { size: 22, color: '#ccc' });
-      txt(svg, 210, c.y + 176, c.sub, { size: 19, color: '#888', italic: true });
-      S('rect', { x: 400, y: c.y - 16, width: 230, height: 32, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }, svg);
-      c.bar = S('rect', { x: 400, y: c.y - 16, width: 0, height: 32, fill: C.teal, opacity: 0.85 }, svg);
-      c.val = txt(svg, 400, c.y - 30, '', { size: 20, color: C.teal, anchor: 'start' });
-      c.tap = txt(svg, 320, c.y - 80, 'takeoff!', { size: 24, color: C.yellow, anchor: 'start' });
-      return c;
-    });
-    txt(svg, 515, 200, 'momentum loaded', { size: 20, color: '#999', italic: true });
-    this.maxL = IU(1) * ALPHA * this.cases[1].T;
-    this.render(0);
-  },
-  render(t) {   // t in seconds of real swing time
-    const base = IU(1) * this.ALPHA * this.cases[0].T;
-    for (const c of this.cases) {
-      const tt = Math.min(t, c.T), psi = c.from + 0.5 * this.ALPHA * tt * tt, L = IU(1) * this.ALPHA * tt;
-      c.sk.set({ tL: 0, tU: psi, s: 1 });
-      c.bar.setAttribute('width', (230 * L / this.maxL).toFixed(1));
-      c.val.textContent = t > 0 ? `ΔL × ${(L / base).toFixed(2)}` : '';
-      c.tap.setAttribute('opacity', t >= c.T ? 1 : 0);
-    }
-  },
-  step(st, a) {
-    const end = this.cases[1].T;
-    if (st < 3) return this.render(0);
-    if (st === 3 && a) { this.render(0); anim(end * 3000, u => this.render(u * end), lin); return; }
-    this.render(end);
   },
 };
 
@@ -909,11 +835,6 @@ HOOKS.rigid = {
     arrow(I, 342, 478, 352, 468, { color: C.amber, w: 0, head: 14 });
     txt(I, 372, 462, 'internal: waist twist', { size: 20, color: C.amber, anchor: 'start' });
   },
-};
-
-/* 3D iframe: load only when first shown */
-HOOKS.three = {
-  step() { const f = document.querySelector('iframe.embed'); if (!f.src) f.src = f.dataset.src; },
 };
 
 /* ═════════════════════════ video slots ═════════════════════════ */
