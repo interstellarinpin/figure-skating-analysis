@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Snap: Physics of a Figure Skating Jump</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --blue:#58C4DD; --amber:#F0AC5F; --yellow:#F7E463; --pink:#E07ACB; --teal:#5CD0B3;
+    --purple:#B189C6; --red:#FC6255; --green:#83C167; --fg:#ECECEC; --muted:#8C8C8C;
+  }
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;color:var(--fg);
+    font-family:KaTeX_Main,"Latin Modern Roman","CMU Serif",Georgia,serif;}
+  #viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #stage{width:1600px;height:900px;position:relative;flex:none;transform-origin:center center;}
+  .slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s,visibility 0s .45s;}
+  .slide.active{opacity:1;visibility:visible;transition:opacity .45s;}
+  h1{font-weight:normal;font-size:96px;margin:0;line-height:1.05}
+  h2{position:absolute;left:80px;top:42px;margin:0;font-weight:normal;font-size:54px;}
+  p{margin:0 0 22px;font-size:30px;line-height:1.4}
+  .abs{position:absolute}
+  .b{color:var(--blue)} .a{color:var(--amber)} .y{color:var(--yellow)} .pk{color:var(--pink)}
+  .t{color:var(--teal)} .pu{color:var(--purple)} .r{color:var(--red)} .mut{color:var(--muted)}
+  svg.full{position:absolute;left:0;top:0;width:1600px;height:900px;pointer-events:none;overflow:visible}
+  .svgt{font-family:KaTeX_Main,Georgia,serif}
+  .katex{font-size:1.12em}
+  .katex-display{margin:0;text-align:left}
+  .katex-display>.katex{text-align:left}
+
+  .f{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;}
+  .f.on{opacity:1;transform:none;}
+  .f.on.dimmed{opacity:.16}
+  svg .f{transform:none}
+
+  .deriv{position:absolute}
+  .deriv .line{display:grid;grid-template-columns:var(--eqw,860px) 1fr;align-items:center;column-gap:30px;
+    min-height:76px;opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;}
+  .deriv.stack .line{grid-template-columns:1fr;min-height:0;margin-bottom:18px}
+  .deriv .line.on{opacity:.4;transform:none}
+  .deriv .line.on.cur,.deriv.nodim .line.on{opacity:1}
+  .deriv .eq{font-size:var(--eqfs,32px)}
+  .deriv .why{color:var(--muted);font-style:italic;font-size:25px}
+  .deriv.stack .why{font-size:23px;margin-top:4px}
+  .line.cur .hl{background:rgba(247,228,99,.16);border-radius:6px;box-shadow:0 0 0 5px rgba(247,228,99,.16)}
+
+  .callout{border-left:4px solid var(--yellow);background:rgba(247,228,99,.06);padding:18px 26px;
+    font-size:28px;line-height:1.45}
+  .callout.amber{border-color:var(--amber);background:rgba(240,172,95,.07)}
+  .ro{font-size:26px;display:flex;gap:30px;flex-wrap:wrap}
+  .ro b{font-weight:normal;font-family:KaTeX_Main,monospace;color:#fff;display:inline-block;min-width:64px}
+  .hint{font-size:20px;color:#666;font-style:italic}
+  .col2{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+  .col2 h3{font-weight:normal;font-size:36px;margin:0 0 18px}
+  .col2 li{font-size:27px;margin-bottom:14px;line-height:1.35}
+  ul{padding-left:28px;margin:0}
+
+  /* video slots */
+  .vslot{position:absolute;border:2px dashed #3a3a3a;border-radius:10px;background:#0b0b0b;overflow:hidden;
+    display:flex;align-items:center;justify-content:center}
+  .vslot.has{border:1px solid #222;background:#000}
+  .vslot video{width:100%;height:100%;object-fit:contain;display:none;background:#000}
+  .vslot.has video{display:block}
+  .vslot .ph{text-align:center;color:#666;font-size:24px;line-height:1.5;padding:20px;cursor:pointer}
+  .vslot.has .ph{display:none}
+  .vslot .ph big{display:block;font-size:56px;color:#444;margin-bottom:6px}
+  .vslot.drag{border-color:var(--yellow);background:rgba(247,228,99,.05)}
+  .vbtns{position:absolute;display:flex;gap:10px}
+  .vbtns button{font:18px KaTeX_Main,Georgia,serif;background:#141414;color:#ccc;border:1px solid #333;
+    border-radius:6px;padding:6px 14px;cursor:pointer}
+  .vbtns button.sel{border-color:var(--yellow);color:var(--yellow)}
+  .cap{position:absolute;font-size:22px;color:#999;font-style:italic;outline:none}
+  .cap:focus{color:#ddd}
+
+  .card{position:absolute;border:1px solid #2e2e2e;border-radius:14px;padding:30px 36px;background:#0c0c0c}
+  .card .num{font-size:84px;line-height:1;margin-bottom:12px}
+  .card h3{font-weight:normal;font-size:44px;margin:0 0 16px}
+  .card p{font-size:26px;color:#ccc}
+
+  iframe.embed{position:absolute;border:1px solid #222;border-radius:10px;background:#000}
+
+  #bar{position:fixed;left:0;bottom:0;height:3px;background:var(--amber);transition:width .3s;width:0}
+  #counter{position:fixed;right:16px;bottom:10px;font:14px KaTeX_Main,Georgia,serif;color:#555}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- 0 ─────────────── TITLE -->
+<section class="slide" data-id="title" data-steps="0">
+  <svg class="full" id="title-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs" style="left:100px;top:270px;width:820px">
+    <h1>The Snap</h1>
+    <p style="font-size:38px;color:#bbb;margin-top:22px">The physics of a figure skating jump,<br>and why it should feel effortless</p>
+    <p class="hint" style="margin-top:70px">Part 2 of <a href="falling_cat_slides.html" style="color:#888">The Falling Cat</a> ·
+      → / space / click to advance · F for fullscreen</p>
+  </div>
+</section>
+
+<!-- 1 ─────────────── CAT → SKATER -->
+<section class="slide" data-id="bridge" data-steps="2">
+  <h2>From the cat to the skater</h2>
+  <div class="abs col2" style="left:80px;top:180px;width:1440px">
+    <div class="f" data-s="0">
+      <h3>The falling cat</h3>
+      <ul>
+        <li>\(L = 0\): nothing to push off</li>
+        <li>Turns by changing shape only: \(\;\dtU = \cS\,\dPS\)</li>
+        <li>Must close a loop in shape space, entirely in the air</li>
+      </ul>
+    </div>
+    <div class="f" data-s="1">
+      <h3>The skater</h3>
+      <ul>
+        <li>\(\LL \neq 0\): taken from the ice at takeoff</li>
+        <li>Spins <i>and</i> changes shape</li>
+        <li>Can do half the loop on the ice, where the blade holds the hips</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout f abs" data-s="2" style="left:80px;top:600px;width:1380px">
+    Same two-body physics, plus one extra term. Shoulders and arms are the <span class="b">upper body</span>;
+    hips and legs are the <span class="a">lower body</span>.
+  </div>
+</section>
+
+<!-- 2 ─────────────── WATCH THE SNAP (video) -->
+<section class="slide" data-id="watch" data-steps="3">
+  <h2>Watch the snap</h2>
+  <div class="vslot interactive" data-src="media/09_snap_sk8_clean.mp4" style="left:110px;top:140px;width:480px;height:690px"></div>
+  <div class="vbtns interactive" style="left:110px;top:842px">
+    <button data-rate="0.25">0.25×</button><button data-rate="0.5">0.5×</button><button data-rate="1" class="sel">1×</button>
+  </div>
+  <div class="abs" style="left:680px;top:170px;width:840px">
+    <p class="f" data-s="0"><span class="mut">1.</span>&ensp;On the ice, the <span class="b">upper body</span> opens ahead of the hips (the wind-up).</p>
+    <p class="f" data-s="1"><span class="mut">2.</span>&ensp;The pick: the toe plants and the weight transfers onto the right foot. Then the blade leaves the ice with the shoulders still leading.</p>
+    <p class="f" data-s="2"><span class="mut">3.</span>&ensp;The arms draw in, and the <span class="a">lower body swings into line</span> with the shoulders.</p>
+    <div class="callout amber f" data-s="3">Step 3 is <span class="a">the snap</span>. It looks effortless because
+      the skater barely does anything to cause it. Let's derive why.</div>
+  </div>
+</section>
+
+<!-- 3 ─────────────── THE MODEL -->
+<section class="slide" data-id="model" data-steps="3">
+  <h2>A two-body skater</h2>
+  <svg class="full" id="model-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs" style="left:80px;top:610px;width:820px">
+    <p class="f" data-s="0" style="font-size:25px;margin-bottom:12px">Both halves spin about the same vertical axis.</p>
+    <p class="f" data-s="1" style="font-size:25px;margin-bottom:12px">\(\tU,\ \tL\): which way the <span class="b">shoulders</span> and <span class="a">hips</span> face.</p>
+    <p class="f" data-s="2" style="font-size:25px;margin-bottom:12px">\(\PS = \tU - \tL\): how far the shoulders <span class="y">lead</span> the hips.</p>
+    <p class="f" data-s="3" style="font-size:25px;margin-bottom:12px">\(\sv\): arm position, \(0\) (pulled in) to \(1\) (out). It sets \(\IU(\sv)\); \(\IL\) is fixed.</p>
+  </div>
+  <div class="abs ro" style="left:960px;top:760px;width:600px">
+    <span class="f" data-s="2">\(\PS\) = <b id="m-psi">0.00</b></span>
+    <span class="f" data-s="3">\(\sv\) = <b id="m-s">1.00</b></span>
+    <span class="f" data-s="3">\(\IU\) = <b id="m-iu">1.20</b></span>
+  </div>
+</section>
+
+<!-- 4 ─────────────── DERIVATION WITH L ≠ 0 -->
+<section class="slide" data-id="derive" data-steps="6">
+  <h2>Angular momentum, now not zero</h2>
+  <div class="deriv" style="left:80px;top:145px;width:1460px;--eqw:930px">
+    <div class="line" data-s="0"><div class="eq">\[\LL = \IU\,\dtU + \IL\,\dtL\]</div>
+      <div class="why">\(\LL\) is taken from the ice at takeoff, then stays constant in the air</div></div>
+    <div class="line" data-s="1"><div class="eq">\[\dtU = \dtL + \dPS\]</div>
+      <div class="why">Same twist as the cat: \(\PS = \tU - \tL\)</div></div>
+    <div class="line" data-s="2"><div class="eq">\[\LL = \IU\,\htmlClass{hl}{(\dtL + \dPS)} + \IL\,\dtL\]</div>
+      <div class="why">Substitute</div></div>
+    <div class="line" data-s="3"><div class="eq">\[(\IU + \IL)\,\dtL = \LL - \IU\,\dPS\]</div>
+      <div class="why">Collect the \(\dtL\) terms</div></div>
+    <div class="line" data-s="4"><div class="eq">\[\dtL = \frac{\LL}{I} - \frac{\IU}{I}\,\dPS, \qquad I = \IU + \IL\]</div>
+      <div class="why">Divide by the total inertia</div></div>
+    <div class="line" data-s="5"><div class="eq">\[\boxed{\;\dtL = \underbrace{\frac{\LL}{I(\sv)}}_{\color{#5CD0B3}\text{dynamic spin}} + \underbrace{\kS\,(-\dPS)}_{\color{#F0AC5F}\text{the snap}}\;}\qquad \kS = \frac{\IU(\sv)}{\IU(\sv) + \IL}\]</div>
+      <div class="why">The hips' rotation rate splits into two terms</div></div>
+    <div class="line" data-s="6"><div class="eq">\[\LL = 0:\quad \dtU = \dtL + \dPS = (1 - \kS)\,\dPS = \cS\,\dPS\ \checkmark\]</div>
+      <div class="why">Turn off the spin and you get the cat back, with \(\cc = 1 - \kk\)</div></div>
+  </div>
+</section>
+
+<!-- 5 ─────────────── INTEGRATE -->
+<section class="slide" data-id="integrate" data-steps="4">
+  <h2>From rate to net turn</h2>
+  <div class="deriv" style="left:80px;top:160px;width:1460px;--eqw:900px">
+    <div class="line" data-s="0"><div class="eq">\[\Delta\tL = \int \dtL\,dt\]</div>
+      <div class="why">Add up the hips' turning rate over the flight</div></div>
+    <div class="line" data-s="1"><div class="eq">\[\phantom{\Delta\tL}= \int \frac{\LL}{I}\,dt \;+\; \int \kS\,\Big(-\frac{d\PS}{\cancel{dt}}\Big)\,\cancel{dt}\]</div>
+      <div class="why">In the snap term the \(dt\)'s cancel, just as for the cat</div></div>
+    <div class="line" data-s="2"><div class="eq">\[\phantom{\Delta\tL}= \underbrace{\int \frac{\LL}{I}\,dt}_{\color{#5CD0B3}\text{depends on timing}} \;+\; \underbrace{\int \kS\,(-d\PS)}_{\color{#F0AC5F}\text{depends only on the path}}\]</div>
+      <div class="why">Pulling in raises \(\LL/I\) (the familiar part)</div></div>
+    <div class="line" data-s="3"><div class="eq">\[\text{snap} = \int_{\htmlClass{hl}{\text{takeoff}}}^{\text{landing}} \kS\,(-d\PS) \;\approx\; \bar{\kk}\;\PS(t_{\text{takeoff}})\]</div>
+      <div class="why">Only the lead still stored when the blade leaves the ice gets converted</div></div>
+  </div>
+  <div class="callout amber f abs" data-s="4" style="left:80px;top:610px;width:1360px">
+    Time drops out of the integral, but <span class="y">takeoff sets its limits</span>. As long as the blade is on the ice, it holds the hips,
+    so nothing converts, even after the pick while the weight is still transferring onto the right foot. Leaving the ice releases
+    whatever shoulder lead \(\PS(t_{\text{takeoff}})\) is stored at that instant.
+    <span class="y">When</span> you open the shoulders matters a lot.
+  </div>
+</section>
+
+<!-- 5b ─────────────── TIMING THE SNAP -->
+<section class="slide" data-id="timing" data-steps="3">
+  <h2>Timing: takeoff releases the snap</h2>
+  <svg class="full" id="timing-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs" style="left:80px;top:700px;width:1440px">
+    <p class="f" data-s="0" data-e="1" style="font-size:26px"><span class="y">On time:</span> the shoulder lead peaks right as the blade leaves the ice.
+      All \(0.9\) rad is stored when the hips are released, giving the full snap.</p>
+    <p class="f abs" data-s="1" data-e="2" style="font-size:26px;top:0"><span class="r">Too early:</span> the shoulders start unwinding while still on the ice.
+      The blade holds the hips, so that part of the lead is wasted. Less is stored at takeoff.</p>
+    <p class="f abs" data-s="2" data-e="3" style="font-size:26px;top:0"><span class="r">Too late:</span> the shoulders are still opening after takeoff.
+      Opening in the air pushes the hips <i>backward</i> by \(\kk_{\text{out}}\) per radian, which eats into the snap.</p>
+    <div class="f abs interactive" data-s="3" style="top:0;font-size:24px;display:flex;align-items:center;gap:24px">
+      <span>Try it: shoulder peak relative to takeoff</span>
+      <input id="tm-slider" type="range" min="-0.3" max="0.2" step="0.005" value="0">
+      <span class="mut" style="font-size:21px">Winding back first adds a second gain: more angular momentum. Next slide.</span>
+    </div>
+  </div>
+  <div class="abs ro" style="left:960px;top:620px;width:600px;font-size:24px">
+    <span>peak − takeoff = <b id="tm-d">0.00</b> s</span><span>stored at takeoff: <b id="tm-psi">0.90</b></span>
+  </div>
+</section>
+
+<!-- 5c ─────────────── WHY WIND BACK -->
+<section class="slide" data-id="windback" data-steps="5">
+  <h2>Why wind back? A longer runway for momentum</h2>
+  <svg class="full" id="wind-svg" viewBox="0 0 1600 900"></svg>
+  <div class="deriv stack" style="left:700px;top:150px;width:860px;--eqfs:30px">
+    <div class="line" data-s="0"><div class="eq">\[\tau_m\,\Delta\phi = \tfrac{1}{2}\,\IU\,\dPS^{\,2}\]</div>
+      <div class="why">The waist muscles (max torque \(\tau_m\)) do work over the swing \(\Delta\phi\) while the blade holds the hips</div></div>
+    <div class="line" data-s="1"><div class="eq">\[\dPS = \sqrt{2\,\tau_m\,\Delta\phi\,/\,\IU}\]</div>
+      <div class="why">How fast the shoulders are turning at the end of the swing</div></div>
+    <div class="line" data-s="2"><div class="eq">\[\Delta\LL = \IU\,\dPS = \sqrt{2\,\tau_m\,\IU\,\Delta\phi}\]</div>
+      <div class="why">Angular momentum loaded into the shoulders. The ice supplies the reaction torque.</div></div>
+    <div class="line" data-s="3"><div class="eq">\[\text{wind back by } \PS_0:\ \ \Delta\phi \times 2 \;\Longrightarrow\; \Delta\LL \times \sqrt{2} \approx 1.41\]</div>
+      <div class="why">Same muscles, twice the runway, 41% more momentum</div></div>
+    <div class="line" data-s="4"><div class="eq">\[\LL_{\text{takeoff}} = \LL_{\text{entry}} + \Delta\LL\]</div>
+      <div class="why">The shoulders check at takeoff and hand \(\Delta\LL\) to the whole body, so the spin \(\LL/I\) is faster in the air</div></div>
+  </div>
+  <div class="callout amber f abs" data-s="5" style="left:700px;top:700px;width:820px;font-size:23px">
+    Two gains, both released at takeoff: the <span class="t">wind-back loads momentum</span> (more spin), and the
+    <span class="y">forward lead loads the snap</span> (free rotation). Since \(\Delta\LL \propto \sqrt{\IU}\), arms out during the wind-up load even more.
+  </div>
+</section>
+
+<!-- 6 ─────────────── TIP OF THE ICEBERG -->
+<section class="slide" data-id="iceberg" data-steps="5">
+  <h2>Conservation of angular momentum is the tip of the iceberg</h2>
+  <svg class="full" id="iceberg-svg" viewBox="0 0 1600 900"></svg>
+</section>
+
+<!-- 7 ─────────────── THE SNAP IN THE AIR -->
+<section class="slide" data-id="air" data-steps="3">
+  <h2>The snap, in the air</h2>
+  <svg class="full" id="air-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs ro" style="left:90px;top:790px;width:760px;font-size:23px;gap:22px">
+    <span>\(t\) = <b id="a-t">0.00</b> s</span><span>\(\PS\) = <b id="a-psi">0.90</b></span>
+    <span>\(\sv\) = <b id="a-s">1.00</b></span><span>snap: <b id="a-geo">0.00</b> rad</span>
+  </div>
+  <div class="callout amber f abs" data-s="2" style="left:880px;top:640px;width:640px;font-size:24px">
+    Riding along with the spin, the <span class="a">hips swing forward 0.38 rad (22°)</span> and the
+    <span class="b">shoulders check back</span> to meet them. Nobody pushed: it's internal.
+  </div>
+  <div class="f abs" data-s="3" style="left:880px;top:800px;width:660px;font-size:24px;color:#ccc">
+    The landing leg turns 22° more than \(\LL\) alone would give it, without any extra angular momentum.
+  </div>
+</section>
+
+<!-- 8 ─────────────── SNAP = AREA -->
+<section class="slide" data-id="area" data-steps="4">
+  <h2>The snap is an area</h2>
+  <svg class="full" id="area-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs" style="left:960px;top:160px;width:600px">
+    <p class="f" data-s="0" style="font-size:26px">Plot the snap in the \((\PS, \kk)\) plane. The shoulders' lead \(\PS\) closes from \(0.9\) to \(0\).</p>
+    <p class="f" data-s="1" style="font-size:26px"><span class="a">Arms drawing in during the snap:</span>
+      area \(= \int \kk\,(-d\PS) = 0.38\) rad \(\approx 22^\circ\)</p>
+    <p class="f" data-s="2" style="font-size:26px"><span class="pk">Arms already in:</span> \(0.259 \times 0.9 = 0.23\) rad \(\approx 13^\circ\)</p>
+    <p class="f" data-s="3" style="font-size:26px"><span class="b">Arms still out:</span> \(0.545 \times 0.9 = 0.49\) rad \(\approx 28^\circ\),
+      but wide arms make \(\LL/I\) smaller, which slows the spin.</p>
+    <div class="callout amber f" data-s="4" style="font-size:25px">Snap <i>as</i> the arms come in:
+      you keep most of the snap, and the spin speeds up at the same time.</div>
+  </div>
+</section>
+
+<!-- 9 ─────────────── THE ICE CLOSES THE LOOP -->
+<section class="slide" data-id="ice" data-steps="3">
+  <h2>Wind up on the ice, not in the air</h2>
+  <svg class="full" id="ice-svg" viewBox="0 0 1600 900"></svg>
+  <div class="abs" style="left:900px;top:160px;width:640px">
+    <p class="f" data-s="0" style="font-size:25px"><span class="a">In the air, the snap</span> closes the lead (with the arms coming in): \(+0.38\)</p>
+    <div class="f" data-s="1" style="margin-bottom:22px">
+      <p style="font-size:25px;margin-bottom:8px"><span class="r">Option A: open the shoulders in the air.</span>
+        The hips counter-rotate by \(-\kk_{\text{out}}\PS_0 = -0.545 \times 0.9 = -0.49\).</p>
+      <p style="font-size:25px">Net: \(-0.49 + 0.38 = -0.11\). <span class="r">Worse than no wind-up at all.</span></p>
+    </div>
+    <div class="f" data-s="2">
+      <p style="font-size:25px;margin-bottom:8px"><span class="t">Option B: open the shoulders on the ice.</span>
+        The blade holds the hips (the ice supplies the reaction torque), so the opening costs \(0\).</p>
+      <p style="font-size:25px">Net: \(0 + 0.38 = +0.38\) rad \(\approx 22^\circ\).</p>
+    </div>
+    <div class="callout f" data-s="3" style="font-size:24px">The cat has to pay for both halves of its loop in the air.
+      The skater lets the ice pay for the wind-up and keeps the snap for free.</div>
+  </div>
+</section>
+
+<!-- 10 ─────────────── WHY NOT ROTATE RIGIDLY -->
+<section class="slide" data-id="rigid" data-steps="3">
+  <h2>Why not just turn the whole body?</h2>
+  <svg class="full" id="rigid-svg" viewBox="0 0 1600 900"></svg>
+  <div class="deriv stack" style="left:620px;top:160px;width:920px;--eqfs:30px">
+    <div class="line" data-s="0"><div class="eq">\[\frac{d\LL}{dt} = \tau_{\text{ice}} + \underbrace{\tau_{U \to L} + \tau_{L \to U}}_{=\,0}\]</div>
+      <div class="why">Torques between your own body parts come in equal and opposite pairs</div></div>
+    <div class="line" data-s="1"><div class="eq">\[\text{rigid body } (\dPS = 0):\quad \Delta\theta = \int \frac{\LL}{I}\,dt \text{ only}\]</div>
+      <div class="why">Every degree has to come from \(\LL\), and \(\LL\) only comes from the ice</div></div>
+    <div class="line" data-s="2"><div class="eq">\[\tau_{\text{ice}} = \vec r \times \vec F_{\text{blade}}\]</div>
+      <div class="why">More torque from the ice means bigger sideways forces at the blade. Any misalignment with
+        your center of mass also tilts the spin axis: a balance problem.</div></div>
+  </div>
+  <div class="callout amber f abs" data-s="3" style="left:620px;top:690px;width:900px;font-size:25px">
+    The snap is an <span class="a">internal</span> torque: no push from the ice, no change in \(\LL\),
+    nothing to tip the axis. That's why it looks effortless.
+  </div>
+</section>
+
+<!-- 11 ─────────────── THE MINDSET -->
+<section class="slide" data-id="mindset" data-steps="3">
+  <h2>The new mindset</h2>
+  <p class="f abs" data-s="0" style="left:80px;top:140px;width:1400px;color:#bbb">
+    Stop trying to force the whole body around. Physics already delivers the rotation. A skater only has to manage two things:</p>
+  <div class="card f" data-s="1" style="left:80px;top:250px;width:640px;height:300px;border-color:#2b4a55">
+    <div class="num b">1</div><h3>Balance</h3>
+    <p>Stay stacked over the blade at takeoff. The ice can give you \(\LL\) and hold your hips for the wind-up, but only if you're on axis.</p>
+  </div>
+  <div class="card f" data-s="2" style="left:800px;top:250px;width:640px;height:300px;border-color:#5a4426">
+    <div class="num a">2</div><h3>Create the snap with the upper body</h3>
+    <p>Wind back, then open the shoulders on the ice so the lead peaks <i>right as you leave the ice</i>. Takeoff releases it, and the hips catch up on their own: \(\bar{\kk}\,\PS(t_{\text{takeoff}})\).</p>
+  </div>
+  <div class="callout f abs" data-s="3" style="left:80px;top:690px;width:1360px;font-size:30px">
+    Two repeatable actions instead of a full-body heave
+    \(\;\Longrightarrow\;\) <span class="y">a lot more consistency.</span>
+  </div>
+</section>
+
+<!-- 12 ─────────────── YOUR FOOTAGE -->
+<section class="slide" data-id="footage" data-steps="0">
+  <h2>On the ice</h2>
+  <div class="vslot interactive" data-src="" style="left:80px;top:140px;width:700px;height:640px"></div>
+  <div class="vslot interactive" data-src="" style="left:820px;top:140px;width:700px;height:640px"></div>
+  <div class="cap" contenteditable="true" spellcheck="false" style="left:80px;top:800px;width:700px">Click to add a caption…</div>
+  <div class="cap" contenteditable="true" spellcheck="false" style="left:820px;top:800px;width:700px">Click to add a caption…</div>
+</section>
+
+<!-- 13 ─────────────── 3D -->
+<section class="slide" data-id="three" data-steps="0">
+  <h2>The whole jump in 3D</h2>
+  <iframe class="embed interactive" data-src="jump3d.html" style="left:80px;top:130px;width:1440px;height:700px"></iframe>
+  <div class="abs hint" style="left:80px;top:842px">Drag to orbit. Click outside the 3D view, then use → to continue.</div>
+</section>
+
+<!-- 14 ─────────────── SUMMARY -->
+<section class="slide" data-id="summary" data-steps="5">
+  <h2>Summary</h2>
+  <div class="abs" style="left:100px;top:160px;width:1400px">
+    <p class="f" data-s="0"><span class="mut">1.</span>&ensp;\(\dtL = \dfrac{\LL}{I} + \kS(-\dPS)\): <span class="t">dynamic spin</span> plus <span class="a">the snap</span></p>
+    <p class="f" data-s="1"><span class="mut">2.</span>&ensp;The snap \(\approx \bar{\kk}\,\PS(t_{\text{takeoff}})\): only the lead stored when the blade leaves the ice counts, so timing matters, not effort</p>
+    <p class="f" data-s="2"><span class="mut">3.</span>&ensp;Wind up on the ice (the blade holds the hips), snap in the air: \(\approx 22^\circ\) for free in this model</p>
+    <p class="f" data-s="3"><span class="mut">4.</span>&ensp;Wind back for a longer runway: \(\Delta\LL \propto \sqrt{\Delta\phi}\), loaded on the ice and released at takeoff</p>
+    <p class="f" data-s="4"><span class="mut">5.</span>&ensp;Internal torque can't tip you over. Forcing a rigid turn off the ice can.</p>
+    <p class="f" data-s="5"><span class="mut">6.</span>&ensp;Focus on two things: <span class="b">balance</span> and <span class="a">the upper-body snap</span></p>
+  </div>
+</section>
+
+</div></div>
+<div id="bar"></div><div id="counter"></div>
+<input type="file" id="vfile" accept="video/*" style="display:none">
+
+<script>
+/* ═════════════════════════ physics ═════════════════════════ */
+const IL = 1, IU_IN = 0.35, IU_OUT = 1.2, PSI0 = 0.9, TF = 0.6;
+const IU = s => IU_IN + (IU_OUT - IU_IN) * s;
+const Itot = s => IU(s) + IL;
+const kOf = s => IU(s) / Itot(s);
+const fmt = (x, n = 2) => (x < -0.0005 ? '−' : '') + Math.abs(x).toFixed(n);
+const deg = r => r * 180 / Math.PI;
+const TAU = 2 * Math.PI;
+const smooth = x => x <= 0 ? 0 : x >= 1 ? 1 : 0.5 - 0.5 * Math.cos(Math.PI * x);
+
+/* Air phase: shoulders lead by PSI0 at takeoff with arms out; arms draw in and the
+   lead closes together (s = psi / PSI0), from 8% to 70% of the flight.
+   L is chosen so the dynamic spin alone gives two revolutions.                  */
+const AIR = (() => {
+  const N = 600, prof = t => 1 - smooth((t / TF - 0.08) / 0.62);
+  let invI = 0;
+  for (let i = 0; i < N; i++) invI += (TF / N) / Itot(prof((i + 0.5) * TF / N));
+  const L = 2 * TAU / invI, pts = [];
+  let dyn = 0, geo = 0;
+  for (let i = 0; i <= N; i++) {
+    const t = i * TF / N, s = prof(t), psi = PSI0 * s;
+    pts.push({ t, s, psi, dyn, geo });
+    if (i < N) {
+      const t2 = (i + 1) * TF / N, sm = prof((t + t2) / 2), s2 = prof(t2);
+      dyn += L / Itot(sm) * (t2 - t);
+      geo += kOf(sm) * -(PSI0 * s2 - psi);
+    }
+  }
+  return { L, pts, N };
+})();
+function airAt(u) {
+  u = Math.max(0, Math.min(1, u));
+  const x = u * AIR.N, i = Math.min(AIR.N - 1, Math.floor(x)), f = x - i, a = AIR.pts[i], b = AIR.pts[i + 1];
+  const o = {}; for (const k in a) o[k] = a[k] + (b[k] - a[k]) * f; return o;
+}
+const GEO_END = AIR.pts[AIR.N].geo;   // ≈ 0.383
+
+/* ═════════════════════════ helpers ═════════════════════════ */
+const C = { blue:'#58C4DD', amber:'#F0AC5F', yellow:'#F7E463', pink:'#E07ACB', teal:'#5CD0B3',
+            purple:'#B189C6', red:'#FC6255', green:'#83C167', fg:'#ECECEC' };
+const MACROS = {
+  '\\tU':'{\\color{#58C4DD}\\theta_U}', '\\tL':'{\\color{#F0AC5F}\\theta_L}',
+  '\\dtU':'{\\color{#58C4DD}\\dot\\theta_U}', '\\dtL':'{\\color{#F0AC5F}\\dot\\theta_L}',
+  '\\IU':'{\\color{#58C4DD}I_U}', '\\IL':'{\\color{#F0AC5F}I_L}',
+  '\\PS':'{\\color{#F7E463}\\psi}', '\\dPS':'{\\color{#F7E463}\\dot\\psi}',
+  '\\sv':'{\\color{#E07ACB}s}', '\\kk':'{\\color{#B189C6}k}', '\\kS':'{\\color{#B189C6}k(\\sv)}',
+  '\\cc':'{\\color{#83C167}c}', '\\cS':'{\\color{#83C167}c(\\sv)}', '\\LL':'{\\color{#5CD0B3}L}',
+};
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(parent, x, y, str, { size = 22, color = '#ddd', anchor = 'middle', italic = false } = {}) {
+  const t = S('text', { x, y, 'text-anchor': anchor, fill: color, 'font-size': size, class: 'svgt',
+                        'font-style': italic ? 'italic' : 'normal' }, parent);
+  t.textContent = str; return t;
+}
+function tex(parent, x, y, src, { size = 26, color = C.fg, anchor = 'middle', w = 460, h = 90 } = {}) {
+  const fo = S('foreignObject', { x: anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x,
+                                  y: y - h / 2, width: w, height: h }, parent);
+  const d = document.createElement('div');
+  d.style.cssText = `width:${w}px;height:${h}px;display:flex;align-items:center;color:${color};font-size:${size}px;` +
+    `justify-content:${anchor === 'middle' ? 'center' : anchor === 'end' ? 'flex-end' : 'flex-start'}`;
+  katex.render(src, d, { macros: MACROS, trust: true, throwOnError: false });
+  fo.appendChild(d); return fo;
+}
+function arrow(parent, x1, y1, x2, y2, { color = '#fff', w = 3, head = 13 } = {}) {
+  const g = S('g', {}, parent);
+  const l = S('line', { stroke: color, 'stroke-width': w, 'stroke-linecap': 'round' }, g);
+  const p = S('polygon', { fill: color }, g);
+  g.set = (x1, y1, x2, y2) => {
+    const a = Math.atan2(y2 - y1, x2 - x1), bx = x2 - head * Math.cos(a), by = y2 - head * Math.sin(a);
+    const px = -Math.sin(a) * head * 0.48, py = Math.cos(a) * head * 0.48;
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', bx); l.setAttribute('y2', by);
+    p.setAttribute('points', `${x2},${y2} ${bx + px},${by + py} ${bx - px},${by - py}`);
+  };
+  g.set(x1, y1, x2, y2); return g;
+}
+function frag(el, s, e, dim) { el.classList.add('f'); el.dataset.s = s; if (e != null) el.dataset.e = e; if (dim != null) el.dataset.dim = dim; return el; }
+const lerp = (a, b, t) => a + (b - a) * t;
+
+let GEN = 0;
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const lin = t => t;
+function anim(dur, fn, ease = easeIO) {
+  const g = GEN;
+  return new Promise(res => {
+    let t0 = null;
+    const f = now => {
+      if (g !== GEN) return res(false);
+      if (t0 === null) t0 = now;
+      const t = Math.min(1, (now - t0) / dur);
+      fn(ease(t));
+      t < 1 ? requestAnimationFrame(f) : res(true);
+    };
+    requestAnimationFrame(f);
+  });
+}
+function forever(fn) {
+  const g = GEN; let t0 = null;
+  const f = now => { if (g !== GEN) return; if (t0 === null) t0 = now; fn((now - t0) / 1000); requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+
+/* ═════════════════════════ the skater, from above ═════════════════════════
+   Looking down the spin axis. Hips (amber) and shoulders + arms (blue) rotate
+   about the same center. Facing direction = up at angle 0; positive = CCW.      */
+const dirPt = (t, R) => [-R * Math.sin(t), -R * Math.cos(t)];
+function SkaterTop(parent, cx, cy, { sc = 1, psiArc = true, ghost = true, rink = true, label = '' } = {}) {
+  const root = S('g', { transform: `translate(${cx},${cy}) scale(${sc})` }, parent);
+  if (rink) S('circle', { r: 165, fill: 'rgba(120,170,220,.045)', stroke: '#1c2833', 'stroke-width': 2 }, root);
+  if (ghost) S('line', { x1: 0, y1: 0, x2: 0, y2: -155, stroke: '#4a4a4a', 'stroke-width': 2, 'stroke-dasharray': '7 7' }, root);
+  const wedge = S('path', { fill: 'rgba(247,228,99,.16)', stroke: C.yellow, 'stroke-width': 2 }, root);
+  const psiLab = S('text', { fill: C.yellow, 'font-size': 26, 'text-anchor': 'middle', class: 'svgt', 'font-style': 'italic' }, root);
+  psiLab.textContent = 'ψ';
+  const lower = S('g', {}, root);
+  for (const sg of [-1, 1]) S('line', { x1: sg * 12, y1: -38, x2: -sg * 8, y2: 34, stroke: '#cfcfcf', 'stroke-width': 4, 'stroke-linecap': 'round' }, lower);
+  S('ellipse', { rx: 42, ry: 21, fill: '#1b1b1b', stroke: C.amber, 'stroke-width': 4 }, lower);
+  S('polygon', { points: '-8,-18 8,-18 0,-31', fill: C.amber }, lower);
+  const upper = S('g', {}, root);
+  const arms = [-1, 1].map(sg => ({ sg, p: S('polyline', { fill: 'none', stroke: '#d8d8d8', 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, upper) }));
+  S('rect', { x: -58, y: -15, width: 116, height: 30, rx: 15, fill: '#1b1b1b', stroke: C.blue, 'stroke-width': 4 }, upper);
+  S('circle', { r: 16, cy: -2, fill: '#262626', stroke: '#ddd', 'stroke-width': 2 }, upper);
+  S('polygon', { points: '-6,-16 6,-16 0,-26', fill: '#ddd' }, upper);
+  if (label) txt(root, 0, 205, label, { size: 22, color: '#888', italic: true });
+  return {
+    root,
+    set({ tU = 0, tL = 0, s = 1 } = {}) {
+      lower.setAttribute('transform', `rotate(${-deg(tL)})`);
+      upper.setAttribute('transform', `rotate(${-deg(tU)})`);
+      for (const { sg, p } of arms) {
+        const ex = lerp(sg * 44, sg * 96, s), ey = lerp(-30, -6, s), hx = lerp(-sg * 10, sg * 140, s), hy = lerp(-26, -10, s);
+        p.setAttribute('points', `${sg * 50},0 ${ex},${ey} ${hx},${hy}`);
+      }
+      const psi = tU - tL;
+      if (psiArc && Math.abs(psi) > 0.02) {
+        const R = 128, n = Math.max(2, Math.ceil(Math.abs(psi) / 0.04));
+        let d = 'M0,0';
+        for (let i = 0; i <= n; i++) { const [x, y] = dirPt(tL + psi * i / n, R); d += `L${x.toFixed(1)},${y.toFixed(1)}`; }
+        wedge.setAttribute('d', d + 'Z');
+        const [lx, ly] = dirPt(tL + psi / 2, R + 22);
+        psiLab.setAttribute('x', lx.toFixed(1)); psiLab.setAttribute('y', (ly + 9).toFixed(1)); psiLab.setAttribute('opacity', 1);
+      } else { wedge.setAttribute('d', ''); psiLab.setAttribute('opacity', 0); }
+    },
+  };
+}
+
+/* side-view stick skater: upper body blue, lower body amber */
+function SkaterSide(parent, x, y, { sc = 1, air = false } = {}) {
+  const g = S('g', { transform: `translate(${x},${y}) scale(${sc})` }, parent);
+  const L = (pts, col, w = 9) => S('polyline', { points: pts.map(p => p.join(',')).join(' '), fill: 'none', stroke: col, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+  const hip = [0, -118], sh = [0, -205];
+  if (air) {
+    L([hip, [-4, -62], [6, -12]], C.amber); L([hip, [4, -62], [-6, -12]], C.amber);
+    S('line', { x1: -22, y1: -6, x2: 26, y2: -6, stroke: '#ccc', 'stroke-width': 4 }, g);
+    S('line', { x1: -26, y1: -18, x2: 22, y2: -18, stroke: '#ccc', 'stroke-width': 4 }, g);
+  } else {
+    L([hip, [6, -60], [0, -10]], C.amber); L([hip, [-26, -74], [-58, -48]], C.amber);
+    S('line', { x1: -32, y1: 0, x2: 34, y2: 0, stroke: '#ccc', 'stroke-width': 4, 'stroke-linecap': 'round' }, g);
+    S('line', { x1: -66, y1: -46, x2: -48, y2: -54, stroke: '#ccc', 'stroke-width': 4 }, g);
+  }
+  S('ellipse', { cx: 0, cy: hip[1], rx: 24, ry: 11, fill: '#1b1b1b', stroke: C.amber, 'stroke-width': 4 }, g);
+  L([hip, sh], C.blue, 11);
+  if (air) { L([[0, -200], [26, -170], [-4, -160]], C.blue); L([[0, -200], [-26, -172], [4, -164]], C.blue); }
+  else { L([[0, -200], [52, -186], [104, -192]], C.blue); L([[0, -200], [-50, -184], [-98, -170]], C.blue); }
+  S('circle', { cx: 0, cy: -230, r: 19, fill: '#1b1b1b', stroke: C.blue, 'stroke-width': 4 }, g);
+  return g;
+}
+
+/* ═════════════════════════ slide hooks ═════════════════════════ */
+const HOOKS = {};
+
+/* title: wind-up on ice → air with snap → land, forever */
+HOOKS.title = {
+  init() {
+    const svg = document.getElementById('title-svg');
+    this.sk = SkaterTop(svg, 1200, 450, { sc: 1.25, ghost: false });
+    this.phase = txt(svg, 1200, 720, '', { size: 26, color: '#aaa', italic: true });
+    this.sk.set({ tU: 0, tL: 0, s: 1 });
+  },
+  step() {
+    let base = 0, lastCycle = -1;
+    const W = 1.3, A = 3.2, H = 1.2, P = W + A + H;
+    forever(t => {
+      const cyc = Math.floor(t / P), x = t - cyc * P;
+      if (cyc !== lastCycle) { if (lastCycle >= 0) base += AIR.pts[AIR.N].dyn + GEO_END; lastCycle = cyc; }
+      if (x < W) { const psi = PSI0 * easeIO(x / W); this.sk.set({ tL: base, tU: base + psi, s: 1 }); this.phase.textContent = 'on the ice: shoulders wind up'; }
+      else if (x < W + A) { const a = airAt((x - W) / A); this.sk.set({ tL: base + a.dyn + a.geo, tU: base + a.dyn + a.geo + a.psi, s: a.s });
+        this.phase.textContent = 'in the air: arms in, hips snap into line'; }
+      else { const e = AIR.pts[AIR.N], th = base + e.dyn + e.geo, s = easeIO((x - W - A) / H);
+        this.sk.set({ tL: th, tU: th, s }); this.phase.textContent = 'landing'; }
+    });
+  },
+};
+
+/* video slide: speed buttons */
+HOOKS.watch = {
+  init(slide) {
+    const v = () => slide.querySelector('video');
+    slide.querySelectorAll('.vbtns button').forEach(b => b.addEventListener('click', () => {
+      slide.querySelectorAll('.vbtns button').forEach(x => x.classList.toggle('sel', x === b));
+      if (v()) v().playbackRate = +b.dataset.rate;
+    }));
+  },
+};
+
+/* model */
+HOOKS.model = {
+  init() {
+    const svg = document.getElementById('model-svg');
+    SkaterSide(svg, 300, 520, { sc: 1.25 });
+    const br = (x, y1, y2, col, lab) => {
+      S('path', { d: `M${x},${y1} h12 V${y2} h-12`, fill: 'none', stroke: col, 'stroke-width': 3 }, svg);
+      txt(svg, x + 24, (y1 + y2) / 2 + 8, lab, { size: 26, color: col, anchor: 'start' });
+    };
+    br(460, 520 - 255 * 1.25, 520 - 120 * 1.25, C.blue, 'upper body');
+    br(460, 520 - 116 * 1.25, 520, C.amber, 'lower body');
+    txt(svg, 300, 160, 'side view', { size: 22, color: '#777', italic: true });
+    S('line', { x1: 300, y1: 170, x2: 300, y2: 560, stroke: '#555', 'stroke-dasharray': '6 8', 'stroke-width': 2 }, svg);
+    txt(svg, 1180, 160, 'from above, looking down the spin axis', { size: 22, color: '#777', italic: true });
+    this.sk = SkaterTop(svg, 1180, 420, { sc: 1.05 });
+    this.ro = ['m-psi', 'm-s', 'm-iu'].map(id => document.getElementById(id));
+  },
+  r(psi, s) {
+    this.sk.set({ tL: 0, tU: psi, s });
+    this.ro[0].textContent = fmt(psi); this.ro[1].textContent = fmt(s); this.ro[2].textContent = fmt(IU(s));
+  },
+  step(st) {
+    if (st <= 1) this.r(0, 1);
+    if (st === 2) forever(t => this.r(0.45 * (1 - Math.cos(t * 2.0)), 1));
+    if (st === 3) forever(t => this.r(0, 0.5 * (1 + Math.cos(t * 2.0))));
+  },
+};
+
+/* iceberg */
+HOOKS.iceberg = {
+  init() {
+    const svg = document.getElementById('iceberg-svg');
+    const defs = S('defs', {}, svg), lg = S('linearGradient', { id: 'sea', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    S('stop', { offset: 0, 'stop-color': '#0b2235' }, lg); S('stop', { offset: 1, 'stop-color': '#02070c' }, lg);
+    const W = 330;
+    S('rect', { x: 0, y: W, width: 1600, height: 900 - W, fill: 'url(#sea)' }, svg);
+    S('polygon', { points: `540,${W} 1080,${W} 1400,440 1470,620 1330,800 900,865 600,810 430,640 450,470`, fill: 'rgba(190,225,255,.08)', stroke: '#6f97b3', 'stroke-width': 2 }, svg);
+    S('polygon', { points: `680,${W} 740,250 790,190 835,215 880,280 930,${W}`, fill: 'rgba(225,242,255,.85)', stroke: '#fff', 'stroke-width': 2 }, svg);
+    S('line', { x1: 0, y1: W, x2: 1600, y2: W, stroke: '#4c7a99', 'stroke-width': 2 }, svg);
+    tex(svg, 1080, 220, '\\LL = I\\,\\omega', { size: 36, anchor: 'start', w: 300 });
+    txt(svg, 1082, 275, 'pull the arms in, spin faster', { size: 24, color: '#ccc', anchor: 'start' });
+    S('line', { x1: 940, y1: 240, x2: 1070, y2: 228, stroke: '#888', 'stroke-width': 1.5 }, svg);
+    txt(svg, 1500, W - 12, 'what everyone knows', { size: 20, color: '#6f97b3', anchor: 'end', italic: true });
+    txt(svg, 1500, W + 32, 'what makes the jump work', { size: 20, color: '#6f97b3', anchor: 'end', italic: true });
+    const items = [
+      ['the snap:', '\\int \\kS\\,(-d\\PS)', 'free rotation from shape change'],
+      ['the wind-back:', '', 'a longer runway loads more angular momentum'],
+      ['the wind-up:', '', 'the ice holds the hips while the shoulders open'],
+      ['internal torque:', '', "moves the body parts, can't change L or tip you over"],
+      ['balance:', '', 'staying stacked over the blade'],
+    ];
+    items.forEach(([h, m, d], i) => {
+      const g = frag(S('g', {}, svg), i + 1), y = 405 + i * 86;
+      txt(g, 830, y, h, { size: 30, color: [C.amber, C.green, C.teal, C.purple, C.blue][i], anchor: 'end' });
+      if (m) tex(g, 850, y - 10, m, { size: 28, anchor: 'start', w: 260, h: 70 });
+      txt(g, m ? 1060 : 850, y, d, { size: 24, color: '#bbb', anchor: 'start' });
+    });
+  },
+};
+
+/* timing: takeoff is the lower limit of the snap integral.
+   Shoulder lead psi(t) rises to PSI0 at t = d (takeoff at t = 0). If it peaks early it unwinds
+   on the ice (blade holds the hips: wasted). If late, the rest of the opening happens in the
+   air and costs k_out per radian. Snap = KBAR*psi(tap) (early) or KBAR*PSI0 - KOUT*(PSI0 - psi(tap)). */
+const KBAR = GEO_END / PSI0, KOUT = kOf(1), RISE = 0.35, UNW = 0.3, CLOSE = 0.3;
+function leadAt(t, d) {
+  if (t <= d) return PSI0 * smooth((t - (d - RISE)) / RISE);
+  if (t <= 0) return PSI0 * (1 - smooth((t - d) / UNW));
+  const t0 = Math.max(d, 0), p0 = d < 0 ? leadAt(0, d) : PSI0;
+  return p0 * (1 - smooth((t - t0) / CLOSE));
+}
+const snapOf = d => { const p = leadAt(0, d); return d <= 0 ? KBAR * p : KBAR * PSI0 - KOUT * (PSI0 - p); };
+HOOKS.timing = {
+  init() {
+    const svg = document.getElementById('timing-svg');
+    // left: psi(t)
+    const x = 130, y = 190, w = 690, h = 380, X = this.X = t => x + (t + 0.75) / 1.3 * w, Y = this.Y = v => y + h - v / 1.05 * h;
+    S('rect', { x, y, width: X(0) - x, height: h, fill: 'rgba(120,170,220,.07)' }, svg);
+    txt(svg, (x + X(0)) / 2 - 40, y + h - 16, 'on the ice: blade holds the hips', { size: 20, color: '#8fb3cf', italic: true });
+    txt(svg, (X(0) + x + w) / 2 + 60, y + h - 16, 'in the air', { size: 20, color: '#aaa', italic: true });
+    arrow(svg, x, y + h, x + w + 16, y + h, { color: '#aaa', w: 2 });
+    arrow(svg, x, y + h, x, y - 14, { color: '#aaa', w: 2 });
+    txt(svg, x + w + 16, y + h + 30, 'time', { size: 20, color: '#aaa', anchor: 'end' });
+    tex(svg, x - 12, Y(PSI0), '0.9', { size: 18, color: '#888', anchor: 'end', w: 60 });
+    tex(svg, x + 10, y - 22, '\\PS\\ \\text{(shoulder lead)}', { size: 22, anchor: 'start' });
+    S('line', { x1: X(0), x2: X(0), y1: y - 6, y2: y + h, stroke: C.yellow, 'stroke-width': 2.5 }, svg);
+    txt(svg, X(0), y + h + 30, 'takeoff', { size: 22, color: C.yellow });
+    S('rect', { x: X(-0.15), y, width: X(0) - X(-0.15), height: h, fill: 'rgba(120,170,220,.07)' }, svg);
+    S('line', { x1: X(-0.15), x2: X(-0.15), y1: y - 6, y2: y + h, stroke: '#8fb3cf', 'stroke-width': 1.5, 'stroke-dasharray': '5 6' }, svg);
+    txt(svg, X(-0.15), y + h + 30, 'pick', { size: 20, color: '#8fb3cf' });
+    txt(svg, X(-0.075), y - 30, 'weight → right foot', { size: 17, color: '#8fb3cf', italic: true });
+    this.good = S('polyline', { fill: 'none', stroke: C.yellow, 'stroke-width': 4.5, 'stroke-linejoin': 'round' }, svg);
+    this.bad = S('polyline', { fill: 'none', stroke: C.red, 'stroke-width': 6, 'stroke-linecap': 'round' }, svg);
+    this.dot = S('circle', { r: 9, fill: '#fff' }, svg);
+    this.dotLab = txt(svg, 0, 0, '', { size: 20, color: '#fff', anchor: 'start' });
+    // right: snap vs timing
+    const x2 = 960, w2 = 560, P = this.P = d => x2 + (d + 0.3) / 0.5 * w2, Q = this.Q = v => y + h - (v + 0.05) / 0.5 * h;
+    arrow(svg, x2, Q(0), x2 + w2 + 16, Q(0), { color: '#aaa', w: 2 });
+    arrow(svg, x2, y + h, x2, y - 14, { color: '#aaa', w: 2 });
+    txt(svg, x2 + 10, y - 16, 'snap (rad)', { size: 22, color: C.amber, anchor: 'start' });
+    txt(svg, P(-0.3), Q(0) + 30, 'too early', { size: 19, color: '#999', anchor: 'start' });
+    txt(svg, P(0.2), Q(0) + 30, 'too late', { size: 19, color: '#999', anchor: 'end' });
+    S('line', { x1: P(0), x2: P(0), y1: y - 6, y2: Q(0), stroke: C.yellow, 'stroke-width': 1.5, 'stroke-dasharray': '5 6' }, svg);
+    txt(svg, P(0), Q(0) + 30, 'peak at takeoff', { size: 19, color: C.yellow });
+    txt(svg, x2 - 10, Q(GEO_END) + 6, GEO_END.toFixed(2), { size: 18, color: C.amber, anchor: 'end' });
+    let d = ''; for (let i = 0; i <= 100; i++) { const dd = -0.3 + 0.5 * i / 100; d += (i ? 'L' : 'M') + P(dd).toFixed(1) + ',' + Q(snapOf(dd)).toFixed(1); }
+    S('path', { d, fill: 'none', stroke: C.amber, 'stroke-width': 4 }, svg);
+    this.sdot = S('circle', { r: 10, fill: C.amber, stroke: '#fff', 'stroke-width': 2 }, svg);
+    this.sLab = txt(svg, 0, 0, '', { size: 22, color: '#fff', anchor: 'start' });
+    this.ro = ['tm-d', 'tm-psi'].map(id => document.getElementById(id));
+    this.slider = document.getElementById('tm-slider');
+    this.slider.addEventListener('input', () => { if (this.live) this.render(+this.slider.value); });
+    this.render(0);
+  },
+  render(d) {
+    const X = this.X, Y = this.Y, good = [], bad = [];
+    for (let i = 0; i <= 260; i++) {
+      const t = -0.75 + 1.3 * i / 260, v = leadAt(t, d);
+      good.push(`${X(t).toFixed(1)},${Y(v).toFixed(1)}`);
+      if ((d < 0 && t >= d && t <= 0) || (d > 0 && t >= 0 && t <= d)) bad.push(`${X(t).toFixed(1)},${Y(v).toFixed(1)}`);
+    }
+    this.good.setAttribute('points', good.join(' '));
+    this.bad.setAttribute('points', bad.length > 1 ? bad.join(' ') : '');
+    const pt = leadAt(0, d), sn = snapOf(d);
+    this.dot.setAttribute('cx', X(0)); this.dot.setAttribute('cy', Y(pt));
+    this.dotLab.setAttribute('x', X(0) + 16); this.dotLab.setAttribute('y', Y(pt) - 12);
+    this.dotLab.textContent = `stored at takeoff: ${pt.toFixed(2)}`;
+    this.sdot.setAttribute('cx', this.P(d)); this.sdot.setAttribute('cy', this.Q(sn));
+    this.sLab.setAttribute('x', Math.min(this.P(d) + 16, 1380)); this.sLab.setAttribute('y', this.Q(sn) - 16);
+    this.sLab.textContent = `${fmt(sn)} rad (${Math.round(deg(sn))}°)`;
+    this.ro[0].textContent = (d > 0 ? '+' : '') + fmt(d); this.ro[1].textContent = fmt(pt);
+    this.cur = d;
+  },
+  step(st, a) {
+    this.live = st === 3;
+    const T = [0, -0.22, 0.15, 0], to = st === 3 ? +this.slider.value : T[st];
+    if (st === 3) this.slider.value = 0;
+    const from = a && st > 0 ? T[st - 1] : (st === 3 ? 0 : to);
+    if (a && from !== T[st]) { this.render(from); anim(1600, t => this.render(from + (T[st] - from) * t)); }
+    else this.render(st === 3 ? 0 : to);
+  },
+};
+
+/* wind back: same muscle torque, longer swing → more momentum loaded (constant torque, hips held) */
+HOOKS.windback = {
+  init() {
+    const svg = document.getElementById('wind-svg'), ALPHA = this.ALPHA = 5;   // tau_m / I_U, rad/s^2
+    this.cases = [
+      { y: 300, from: 0, name: 'no wind-back', sub: 'Δφ = 0.9' },
+      { y: 620, from: -PSI0, name: 'wind back first', sub: 'Δφ = 1.8' },
+    ].map(c => {
+      c.T = Math.sqrt(2 * (PSI0 - c.from) / ALPHA);
+      c.sk = SkaterTop(svg, 210, c.y, { sc: 0.62 });
+      txt(svg, 210, c.y + 150, c.name, { size: 22, color: '#ccc' });
+      txt(svg, 210, c.y + 176, c.sub, { size: 19, color: '#888', italic: true });
+      S('rect', { x: 400, y: c.y - 16, width: 230, height: 32, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }, svg);
+      c.bar = S('rect', { x: 400, y: c.y - 16, width: 0, height: 32, fill: C.teal, opacity: 0.85 }, svg);
+      c.val = txt(svg, 400, c.y - 30, '', { size: 20, color: C.teal, anchor: 'start' });
+      c.tap = txt(svg, 320, c.y - 80, 'takeoff!', { size: 24, color: C.yellow, anchor: 'start' });
+      return c;
+    });
+    txt(svg, 515, 200, 'momentum loaded', { size: 20, color: '#999', italic: true });
+    this.maxL = IU(1) * ALPHA * this.cases[1].T;
+    this.render(0);
+  },
+  render(t) {   // t in seconds of real swing time
+    const base = IU(1) * this.ALPHA * this.cases[0].T;
+    for (const c of this.cases) {
+      const tt = Math.min(t, c.T), psi = c.from + 0.5 * this.ALPHA * tt * tt, L = IU(1) * this.ALPHA * tt;
+      c.sk.set({ tL: 0, tU: psi, s: 1 });
+      c.bar.setAttribute('width', (230 * L / this.maxL).toFixed(1));
+      c.val.textContent = t > 0 ? `ΔL × ${(L / base).toFixed(2)}` : '';
+      c.tap.setAttribute('opacity', t >= c.T ? 1 : 0);
+    }
+  },
+  step(st, a) {
+    const end = this.cases[1].T;
+    if (st < 3) return this.render(0);
+    if (st === 3 && a) { this.render(0); anim(end * 3000, u => this.render(u * end), lin); return; }
+    this.render(end);
+  },
+};
+
+/* the snap in the air: lab view + spin-frame view + plot */
+HOOKS.air = {
+  init() {
+    const svg = document.getElementById('air-svg');
+    this.lab = SkaterTop(svg, 230, 330, { sc: 0.62, psiArc: false });
+    txt(svg, 230, 475, 'lab view', { size: 20, color: '#888', italic: true });
+    txt(svg, 230, 500, '(dynamic spin + snap)', { size: 18, color: '#666', italic: true });
+    this.rot = SkaterTop(svg, 580, 440, { sc: 1.0 });
+    txt(svg, 580, 660, 'riding along with the dynamic spin', { size: 22, color: '#888', italic: true });
+    txt(svg, 580, 688, '(the L/I part subtracted)', { size: 18, color: '#666', italic: true });
+    // plot
+    const x = 940, y = 170, w = 560, h = 400, X = this.X = t => x + t / TF * w, Y = this.Y = v => y + h - (v + 0.05) / 1.05 * h;
+    arrow(svg, x, Y(0), x + w + 20, Y(0), { color: '#aaa', w: 2 });
+    arrow(svg, x, y + h, x, y - 14, { color: '#aaa', w: 2 });
+    txt(svg, x + w + 20, Y(0) + 58, 'time (s)', { size: 20, color: '#aaa', anchor: 'end' });
+    for (const t of [0, 0.3, 0.6]) txt(svg, X(t), Y(0) + 30, String(t), { size: 18, color: '#888' });
+    txt(svg, x - 10, Y(0.9) + 6, '0.9', { size: 18, color: '#888', anchor: 'end' });
+    txt(svg, x - 10, Y(GEO_END) + 6, '0.38', { size: 18, color: C.amber, anchor: 'end' });
+    S('line', { x1: x, x2: x + w, y1: Y(GEO_END), y2: Y(GEO_END), stroke: '#333', 'stroke-dasharray': '5 6' }, svg);
+    txt(svg, x + 6, y - 22, 'angle in the spinning frame (rad)', { size: 20, color: '#aaa', anchor: 'start' });
+    this.cu = S('polyline', { fill: 'none', stroke: C.blue, 'stroke-width': 4 }, svg);
+    this.cl = S('polyline', { fill: 'none', stroke: C.amber, 'stroke-width': 4 }, svg);
+    this.cp = S('polyline', { fill: 'none', stroke: C.yellow, 'stroke-width': 2.5, 'stroke-dasharray': '7 6' }, svg);
+    this.cur = S('line', { y1: y, y2: y + h, stroke: '#555', 'stroke-width': 1.5 }, svg);
+    const leg = (yy, col, s, dash) => { S('line', { x1: x + w - 190, x2: x + w - 150, y1: yy, y2: yy, stroke: col, 'stroke-width': 4, 'stroke-dasharray': dash || '' }, svg); txt(svg, x + w - 140, yy + 7, s, { size: 20, color: col, anchor: 'start' }); };
+    leg(y + 20, C.blue, 'shoulders'); leg(y + 50, C.amber, 'hips'); leg(y + 80, C.yellow, 'lead ψ', '7 6');
+    this.ro = ['a-t', 'a-psi', 'a-s', 'a-geo'].map(id => document.getElementById(id));
+    this.render(0);
+  },
+  render(u) {
+    const a = airAt(u), X = this.X, Y = this.Y;
+    this.lab.set({ tL: a.dyn + a.geo, tU: a.dyn + a.geo + a.psi, s: a.s });
+    this.rot.set({ tL: a.geo, tU: a.geo + a.psi, s: a.s });
+    const n = Math.round(u * AIR.N), pu = [], pl = [], pp = [];
+    for (let i = 0; i <= n; i += 4) { const p = AIR.pts[i]; pu.push(`${X(p.t)},${Y(p.geo + p.psi)}`); pl.push(`${X(p.t)},${Y(p.geo)}`); pp.push(`${X(p.t)},${Y(p.psi)}`); }
+    pu.push(`${X(a.t)},${Y(a.geo + a.psi)}`); pl.push(`${X(a.t)},${Y(a.geo)}`); pp.push(`${X(a.t)},${Y(a.psi)}`);
+    this.cu.setAttribute('points', pu.join(' ')); this.cl.setAttribute('points', pl.join(' ')); this.cp.setAttribute('points', pp.join(' '));
+    this.cur.setAttribute('x1', X(a.t)); this.cur.setAttribute('x2', X(a.t));
+    this.ro[0].textContent = a.t.toFixed(2); this.ro[1].textContent = fmt(a.psi); this.ro[2].textContent = fmt(a.s); this.ro[3].textContent = fmt(a.geo);
+  },
+  step(st, a) {
+    if (st === 0) return this.render(0);
+    if (st === 1 && a) { this.render(0); anim(4200, t => this.render(t), lin); return; }
+    this.render(1);
+  },
+};
+
+/* the snap as an area in (psi, k) */
+HOOKS.area = {
+  init() {
+    const svg = document.getElementById('area-svg');
+    const x = 150, y = 190, w = 720, h = 560, X = v => x + (v + 0.08) / 1.12 * w, Y = v => y + h - (v + 0.03) / 0.7 * h;
+    const kd = p => kOf(p / PSI0);       // arms draw in as the lead closes
+    const under = (fn, fill, s, dim) => {
+      let d = `M${X(0)},${Y(0)}`;
+      for (let i = 0; i <= 60; i++) { const p = PSI0 * i / 60; d += `L${X(p)},${Y(fn(p))}`; }
+      return frag(S('path', { d: d + `L${X(PSI0)},${Y(0)}Z`, fill }, svg), s, null, dim);
+    };
+    under(kd, 'rgba(240,172,95,.42)', 1);
+    under(() => kOf(0), 'rgba(224,122,203,.45)', 2).dataset.e = 3;
+    under(() => kOf(1), 'rgba(88,196,221,.30)', 3).dataset.e = 4;
+    arrow(svg, X(-0.08), Y(0), X(1.04), Y(0), { color: '#aaa', w: 2 });
+    arrow(svg, X(0), Y(-0.03), X(0), Y(0.67), { color: '#aaa', w: 2 });
+    tex(svg, X(1.04), Y(0) + 66, '\\PS\\ \\text{(shoulder lead)}', { anchor: 'end', size: 24 });
+    tex(svg, X(0) - 14, Y(0.67), '\\kk', { anchor: 'end', size: 30, w: 60 });
+    txt(svg, X(0.9), Y(0) + 30, '0.9', { size: 20, color: '#aaa' });
+    txt(svg, X(0), Y(0) + 30, '0', { size: 20, color: '#aaa' });
+    for (const [v, col] of [[kOf(1), C.blue], [kOf(0), C.pink]]) {
+      S('line', { x1: X(0), x2: X(PSI0), y1: Y(v), y2: Y(v), stroke: col, 'stroke-width': 2, 'stroke-dasharray': '6 6', opacity: 0.7 }, svg);
+      txt(svg, X(0) - 10, Y(v) + 7, v.toFixed(3), { size: 18, color: col, anchor: 'end' });
+    }
+    txt(svg, X(PSI0) + 10, Y(kOf(1)) + 6, 'arms out', { size: 18, color: C.blue, anchor: 'start' });
+    txt(svg, X(PSI0) + 10, Y(kOf(0)) + 6, 'arms in', { size: 18, color: C.pink, anchor: 'start' });
+    let d = ''; for (let i = 0; i <= 60; i++) { const p = PSI0 * (1 - i / 60); d += (i ? 'L' : 'M') + X(p) + ',' + Y(kd(p)); }
+    S('path', { d, fill: 'none', stroke: C.amber, 'stroke-width': 5 }, svg);
+    const pm = PSI0 * 0.5, a1 = [X(pm + 0.04), Y(kd(pm + 0.04))], a2 = [X(pm - 0.04), Y(kd(pm - 0.04))];
+    arrow(svg, ...a1, ...a2, { color: C.amber, w: 0, head: 22 });
+    S('circle', { cx: X(PSI0), cy: Y(kd(PSI0)), r: 8, fill: '#fff' }, svg);
+    txt(svg, X(PSI0), Y(kd(PSI0)) - 20, 'takeoff', { size: 18, color: '#ccc' });
+    txt(svg, X(0) + 50, Y(kd(0)) - 18, 'snapped', { size: 18, color: '#ccc' });
+    frag(tex(svg, X(0.62), Y(0.36), '0.38\\ \\text{rad}', { size: 30, w: 200 }), 1, 2);
+  },
+};
+
+/* the ice closes the loop: (psi, s) plane */
+HOOKS.ice = {
+  init() {
+    const svg = document.getElementById('ice-svg');
+    const x = 110, y = 200, w = 680, h = 540, X = v => x + (v + 0.14) / 1.26 * w, Y = v => y + h - (v + 0.16) / 1.32 * h;
+    arrow(svg, x, y + h, x + w, y + h, { color: '#aaa', w: 2 });
+    arrow(svg, x, y + h, x, y, { color: '#aaa', w: 2 });
+    tex(svg, x + w, y + h + 66, '\\PS\\ \\text{(shoulder lead)}', { anchor: 'end', size: 24 });
+    tex(svg, x + 16, y - 8, '\\sv\\ \\text{(arms out)}', { anchor: 'start', size: 24 });
+    for (const v of [0, 0.9]) txt(svg, X(v), y + h + 30, String(v), { size: 20, color: '#aaa' });
+    for (const v of [0, 1]) txt(svg, x - 12, Y(v) + 7, String(v), { size: 20, color: '#aaa', anchor: 'end' });
+    // snap (air): diagonal from (0.9, 1) to (0, 0)
+    S('line', { x1: X(PSI0), y1: Y(1), x2: X(0), y2: Y(0), stroke: C.amber, 'stroke-width': 5 }, svg);
+    arrow(svg, X(0.5), Y(0.5 / 0.9), X(0.4), Y(0.4 / 0.9), { color: C.amber, w: 0, head: 22 });
+    txt(svg, X(0.32), Y(0.52), 'air: snap', { size: 22, color: C.amber, anchor: 'end' });
+    txt(svg, X(0.32), Y(0.52) + 24, '+0.38', { size: 20, color: C.amber, anchor: 'end' });
+    // landing: arms back out with psi = 0 (vertical, costs nothing)
+    S('line', { x1: X(0), y1: Y(0), x2: X(0), y2: Y(1), stroke: '#555', 'stroke-width': 3, 'stroke-dasharray': '4 6' }, svg);
+    txt(svg, X(0) + 12, Y(0.66), 'landing: arms out', { size: 18, color: '#888', anchor: 'start' });
+    txt(svg, X(0) + 12, Y(0.66) + 22, 'dψ = 0, so 0', { size: 18, color: '#666', anchor: 'start' });
+    // wind-up options along s = 1
+    const A = frag(S('g', {}, svg), 1, 2);
+    S('line', { x1: X(0), y1: Y(1), x2: X(PSI0), y2: Y(1), stroke: C.red, 'stroke-width': 5, 'stroke-dasharray': '10 8' }, A);
+    arrow(A, X(0.4), Y(1), X(0.5), Y(1), { color: C.red, w: 0, head: 22 });
+    txt(A, X(0.45), Y(1) - 22, 'open in the air: −0.49', { size: 22, color: C.red });
+    const B = frag(S('g', {}, svg), 2);
+    S('line', { x1: X(0), y1: Y(1), x2: X(PSI0), y2: Y(1), stroke: C.teal, 'stroke-width': 7 }, B);
+    arrow(B, X(0.4), Y(1), X(0.5), Y(1), { color: C.teal, w: 0, head: 22 });
+    txt(B, X(0.45), Y(1) - 22, 'wind up on the ice: 0', { size: 22, color: C.teal });
+    S('circle', { cx: X(0), cy: Y(1), r: 8, fill: '#fff' }, svg);
+    txt(svg, X(0) - 14, Y(1) - 14, 'entry', { size: 18, color: '#ccc', anchor: 'end' });
+    S('circle', { cx: X(PSI0), cy: Y(1), r: 8, fill: '#fff' }, svg);
+    txt(svg, X(PSI0) + 14, Y(1) + 6, 'takeoff', { size: 18, color: '#ccc', anchor: 'start' });
+  },
+};
+
+/* why not rigid: side view, balance over the blade */
+HOOKS.rigid = {
+  init() {
+    const svg = document.getElementById('rigid-svg');
+    S('rect', { x: 60, y: 720, width: 500, height: 14, fill: 'rgba(160,200,235,.25)' }, svg);
+    SkaterSide(svg, 300, 720, { sc: 1.5 });
+    const com = [300, 720 - 135 * 1.5];
+    S('line', { x1: 300, y1: 260, x2: 300, y2: 740, stroke: '#555', 'stroke-dasharray': '6 8', 'stroke-width': 2 }, svg);
+    S('circle', { cx: com[0], cy: com[1], r: 10, fill: C.pink, stroke: '#fff', 'stroke-width': 2 }, svg);
+    txt(svg, com[0] - 22, com[1] + 6, 'center of mass', { size: 18, color: C.pink, anchor: 'end' });
+    const F = frag(S('g', {}, svg), 2);
+    arrow(F, 300, 728, 430, 700, { color: C.red, w: 4, head: 16 });
+    tex(F, 470, 690, '\\vec F_{\\text{blade}}', { size: 26, w: 120 });
+    S('line', { x1: 300, y1: 740, x2: 380, y2: 270, stroke: C.red, 'stroke-width': 2, 'stroke-dasharray': '4 6' }, F);
+    txt(F, 392, 290, 'tilted axis', { size: 20, color: C.red, anchor: 'start' });
+    const I = frag(S('g', {}, svg), 3);
+    S('path', { d: 'M250,470 A60,22 0 1 0 350,470', fill: 'none', stroke: C.amber, 'stroke-width': 4 }, I);
+    arrow(I, 342, 478, 352, 468, { color: C.amber, w: 0, head: 14 });
+    txt(I, 372, 462, 'internal: waist twist', { size: 20, color: C.amber, anchor: 'start' });
+  },
+};
+
+/* 3D iframe: load only when first shown */
+HOOKS.three = {
+  step() { const f = document.querySelector('iframe.embed'); if (!f.src) f.src = f.dataset.src; },
+};
+
+/* ═════════════════════════ video slots ═════════════════════════ */
+function setupVideoSlots() {
+  const picker = document.getElementById('vfile');
+  let target = null;
+  picker.addEventListener('change', () => { if (picker.files[0] && target) load(target, URL.createObjectURL(picker.files[0])); picker.value = ''; });
+  function load(slot, url) {
+    const v = slot.querySelector('video');
+    v.src = url; slot.classList.add('has');
+    if (slot.closest('.slide').classList.contains('active')) v.play().catch(() => {});
+  }
+  document.querySelectorAll('.vslot').forEach(slot => {
+    const v = document.createElement('video');
+    Object.assign(v, { muted: true, loop: true, playsInline: true, controls: true, preload: 'metadata' });
+    const ph = document.createElement('div'); ph.className = 'ph';
+    ph.innerHTML = '<big>▶</big>Video goes here<br><span style="font-size:19px">Drag a video file onto this box or click to choose one.<br>' +
+                   'To keep it, put the file in <code>web/media/</code> and set <code>data-src</code>.</span>';
+    slot.append(v, ph);
+    v.addEventListener('error', () => slot.classList.remove('has'));
+    if (slot.dataset.src) { v.src = slot.dataset.src; slot.classList.add('has'); }
+    ph.addEventListener('click', () => { target = slot; picker.click(); });
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('drag'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag'));
+    slot.addEventListener('drop', e => {
+      e.preventDefault(); slot.classList.remove('drag');
+      const f = [...e.dataTransfer.files].find(f => f.type.startsWith('video/'));
+      if (f) load(slot, URL.createObjectURL(f));
+    });
+  });
+}
+
+/* ═════════════════════════ deck controller ═════════════════════════ */
+function main() {
+  renderMathInElement(document.body, {
+    delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }],
+    macros: MACROS, trust: true, throwOnError: false,
+  });
+  setupVideoSlots();
+  const slides = [...document.querySelectorAll('.slide')];
+  slides.forEach(s => { const h = HOOKS[s.dataset.id]; if (h && h.init) h.init(s); });
+  let cur = 0, step = 0;
+  const maxOf = i => +slides[i].dataset.steps || 0;
+  const bar = document.getElementById('bar'), counter = document.getElementById('counter');
+
+  function apply(slide, st) {
+    slide.querySelectorAll('[data-s]').forEach(el => {
+      const s = +el.dataset.s, e = el.dataset.e !== undefined ? +el.dataset.e : Infinity;
+      el.classList.toggle('on', st >= s && st < e);
+      if (el.dataset.dim !== undefined) el.classList.toggle('dimmed', st >= +el.dataset.dim);
+    });
+    slide.querySelectorAll('.deriv').forEach(d => {
+      let curLine = null;
+      d.querySelectorAll('.line').forEach(l => { if (+l.dataset.s <= st) curLine = l; });
+      d.querySelectorAll('.line').forEach(l => l.classList.toggle('cur', l === curLine));
+    });
+  }
+  function go(i, st, animate) {
+    i = Math.max(0, Math.min(slides.length - 1, i)); st = Math.max(0, Math.min(maxOf(i), st));
+    const changed = i !== cur;
+    GEN++; cur = i; step = st;
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    if (changed || !go.started) {
+      document.querySelectorAll('.slide video').forEach(v => { if (!slides[i].contains(v)) v.pause(); });
+      slides[i].querySelectorAll('.vslot.has video').forEach(v => { v.currentTime = 0; v.play().catch(() => {}); });
+    }
+    go.started = true;
+    apply(slides[i], st);
+    const h = HOOKS[slides[i].dataset.id];
+    if (h && h.step) h.step(st, animate);
+    const total = slides.reduce((m, _, k) => m + maxOf(k) + 1, 0);
+    const done = slides.slice(0, i).reduce((m, _, k) => m + maxOf(k) + 1, 0) + st + 1;
+    bar.style.width = (100 * done / total) + '%';
+    counter.textContent = `${i + 1} / ${slides.length}` + (maxOf(i) ? `  ·  step ${st + 1} / ${maxOf(i) + 1}` : '');
+    history.replaceState(null, '', `#${i + 1}.${st}`);
+  }
+  const next = () => step < maxOf(cur) ? go(cur, step + 1, true) : cur < slides.length - 1 && go(cur + 1, 0, true);
+  const prev = () => step > 0 ? go(cur, step - 1, false) : cur > 0 && go(cur - 1, maxOf(cur - 1), false);
+
+  document.addEventListener('keydown', e => {
+    if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
+    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0, 0, false);
+    else if (e.key === 'End') go(slides.length - 1, maxOf(slides.length - 1), false);
+    else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  });
+  document.addEventListener('click', e => {
+    if (e.target.closest('.interactive, input, button, a, [contenteditable], video')) return;
+    e.clientX < window.innerWidth * 0.15 ? prev() : next();
+  });
+
+  const stage = document.getElementById('stage');
+  const fit = () => stage.style.transform = `scale(${Math.min(innerWidth / 1600, innerHeight / 900)})`;
+  addEventListener('resize', fit); fit();
+
+  const m = location.hash.match(/^#(\d+)(?:\.(\d+))?/);
+  cur = -1;
+  go(m ? +m[1] - 1 : 0, m && m[2] ? +m[2] : 0, false);
+}
+document.addEventListener('DOMContentLoaded', main);
+</script>
+</body>
+</html>
